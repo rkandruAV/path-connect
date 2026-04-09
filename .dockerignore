@@ -1,0 +1,12 @@
+node_modules
+.git
+.env
+.env.local
+.env.*.local
+dify/dify-source
+dify/volumes
+n8n-data
+*.log
+.turbo
+coverage
+.DS_Store

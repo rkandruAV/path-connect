@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Docker
+docker-compose.override.yml
+
+# Prisma
+apps/api/prisma/*.db
+
+# Firebase
+firebase-debug.log
+.firebase/
+
+# Coverage
+coverage/
+
+# Dify local data
+dify/volumes/
+dify/dify-source/
+
+# n8n local data
+n8n-data/

@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Schema will be expanded in Phase 1
+// Placeholder model to validate Prisma setup
+model User {
+  id            String   @id @default(cuid())
+  firebaseUid   String   @unique @map("firebase_uid")
+  email         String   @unique
+  displayName   String?  @map("display_name")
+  photoUrl      String?  @map("photo_url")
+  role          Role     @default(MENTEE)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum Role {
+  MENTOR
+  MENTEE
+  ADMIN
+}

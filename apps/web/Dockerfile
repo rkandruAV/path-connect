@@ -11,6 +11,8 @@ COPY packages/shared ./packages/shared
 COPY packages/ui ./packages/ui
 COPY apps/web ./apps/web
 EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 CMD ["npm", "run", "dev", "--workspace=apps/web"]
 
 # ---- Build ----
@@ -27,8 +29,14 @@ COPY apps/web ./apps/web
 RUN npm run build --workspace=apps/web
 
 # ---- Production ----
-FROM nginx:alpine AS prod
-COPY --from=build /app/apps/web/dist /usr/share/nginx/html
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20-alpine AS prod
+WORKDIR /app
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+COPY --from=build /app/apps/web/.next/standalone ./
+COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+CMD ["node", "apps/web/server.js"]

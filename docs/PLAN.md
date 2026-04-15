@@ -2,13 +2,13 @@
 
 ## Overview
 
-PathConnect is an AI-powered mentorship platform that connects mentees with mentors using intelligent matching algorithms. Built with React, Firebase, Node.js, PostgreSQL, Dify AI, and n8n automation.
+PathConnect is an AI-powered mentorship platform that connects mentees with mentors using intelligent matching algorithms. Built with Next.js 15 (App Router), Firebase, Node.js, PostgreSQL, Dify AI, and n8n automation.
 
 ## Architecture
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  React Web  │────▶│  Node.js API│────▶│    Dify     │
+│  Next.js    │────▶│  Node.js API│────▶│    Dify     │
 │  (Frontend) │     │  (Backend)  │     │  (AI Engine) │
 └─────────────┘     └──────┬──────┘     └──────┬──────┘
                            │                    │
@@ -27,7 +27,7 @@ PathConnect is an AI-powered mentorship platform that connects mentees with ment
 
 | Service  | Image                | Port | Purpose                            |
 |----------|----------------------|------|------------------------------------|
-| web      | node:20-alpine+nginx | 3000 | React frontend                     |
+| web      | node:20-alpine       | 3000 | Next.js frontend                   |
 | api      | node:20-alpine       | 4000 | Node.js backend                    |
 | postgres | postgres:16-alpine   | 5432 | App database                       |
 | dify     | langgenius/dify      | 3080 | AI engine (RAG, matching, chatbot) |
@@ -40,9 +40,9 @@ PathConnect is an AI-powered mentorship platform that connects mentees with ment
 
 ### Phase 0: Repo + Docker — Working local dev environment
 - [x] Monorepo structure (Turborepo + npm workspaces)
-- [x] Web app scaffolding (React 18, Vite, TypeScript, Tailwind)
+- [x] Web app scaffolding (Next.js 15 App Router, TypeScript, Tailwind)
 - [x] Firebase Auth integration + Zustand store
-- [x] Routing structure with protected routes
+- [x] App Router structure with route groups and layouts
 - [x] API client/service layer (axios, dify, mentor, session services)
 - [x] Root npm scripts (dev, build, lint, test, docker:*, db:*)
 - [x] .env.example with all required env vars

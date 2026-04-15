@@ -1,4 +1,7 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
@@ -9,13 +12,27 @@ const navItems = [
   { path: '/learning-path', label: 'Learning', icon: '📚' },
 ];
 
-export default function MainLayout() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+export default function MainLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading, logout } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    router.replace('/login');
+    return null;
+  }
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    router.push('/login');
   };
 
   return (
@@ -29,20 +46,18 @@ export default function MainLayout() {
 
         <nav className="flex-1 p-4 space-y-1">
           {navItems.map((item) => (
-            <NavLink
+            <Link
               key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`
-              }
+              href={item.path}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                pathname === item.path
+                  ? 'bg-primary-50 text-primary-700'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
             >
               <span>{item.icon}</span>
               {item.label}
-            </NavLink>
+            </Link>
           ))}
         </nav>
 
@@ -57,12 +72,12 @@ export default function MainLayout() {
               </p>
             </div>
           </div>
-          <NavLink
-            to="/profile"
+          <Link
+            href="/profile"
             className="block text-sm text-gray-600 hover:text-gray-900 mb-2"
           >
             Profile Settings
-          </NavLink>
+          </Link>
           <button
             onClick={handleLogout}
             className="text-sm text-red-600 hover:text-red-700"
@@ -75,7 +90,7 @@ export default function MainLayout() {
       {/* Main content */}
       <main className="flex-1 overflow-auto">
         <div className="max-w-7xl mx-auto p-6">
-          <Outlet />
+          {children}
         </div>
       </main>
     </div>

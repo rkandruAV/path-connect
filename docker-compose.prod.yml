@@ -2,13 +2,23 @@
 # Usage: docker compose -f docker-compose.prod.yml up --build -d
 
 services:
-  # ---------- React Frontend (nginx) ----------
+  # ---------- Next.js Frontend ----------
   web:
     build:
-      context: ./apps/web
+      context: .
+      dockerfile: apps/web/Dockerfile
       target: prod
     ports:
-      - "80:80"
+      - "3000:3000"
+    environment:
+      - API_INTERNAL_URL=http://api:4000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
+      - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
+      - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}
+      - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID}
+      - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID}
     depends_on:
       - api
     restart: always
@@ -16,7 +26,8 @@ services:
   # ---------- Node.js API ----------
   api:
     build:
-      context: ./apps/api
+      context: .
+      dockerfile: apps/api/Dockerfile
       target: prod
     ports:
       - "4000:4000"

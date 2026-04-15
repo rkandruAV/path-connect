@@ -1,8 +1,22 @@
-import { Outlet, Navigate } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+'use client';
 
-export default function AuthLayout() {
-  const { user, loading } = useAuthStore();
+import { useAuthStore } from '@/stores/authStore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading, initialize } = useAuthStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -12,9 +26,7 @@ export default function AuthLayout() {
     );
   }
 
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (user) return null;
 
   return (
     <div className="min-h-screen flex">
@@ -43,7 +55,7 @@ export default function AuthLayout() {
       {/* Right panel - auth form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <Outlet />
+          {children}
         </div>
       </div>
     </div>

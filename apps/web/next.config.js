@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Use standalone output for Docker; Vercel handles output automatically
+  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' } : {}),
   reactStrictMode: true,
   transpilePackages: ['@path-connect/shared', '@path-connect/ui'],
 

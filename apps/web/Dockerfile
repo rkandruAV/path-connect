@@ -26,6 +26,7 @@ RUN npm install --workspace=apps/web --workspace=packages/shared --workspace=pac
 COPY packages/shared ./packages/shared
 COPY packages/ui ./packages/ui
 COPY apps/web ./apps/web
+ENV DOCKER_BUILD=true
 RUN npm run build --workspace=apps/web
 
 # ---- Production ----

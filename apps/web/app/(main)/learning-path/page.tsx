@@ -1,10 +1,25 @@
-export const dynamic = 'force-dynamic';
+'use client';
+
+import { useState } from 'react';
+import { ProgressHeader } from '@/components/learning/ProgressHeader';
+import { ProgressStats } from '@/components/learning/ProgressStats';
+import { ProgressTabs, type ProgressTab } from '@/components/learning/ProgressTabs';
+import { OverviewTab } from '@/components/learning/OverviewTab';
+import { ActionsTab } from '@/components/learning/ActionsTab';
+import { InsightsTab } from '@/components/learning/InsightsTab';
 
 export default function LearningPathPage() {
+  const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Learning Path</h1>
-      {/* Learning path visualization will be implemented in Phase 4 */}
+      <ProgressHeader />
+      <ProgressStats />
+      <ProgressTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {activeTab === 'overview' && <OverviewTab />}
+      {activeTab === 'actions' && <ActionsTab />}
+      {activeTab === 'insights' && <InsightsTab />}
     </div>
   );
 }

@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: path-connect-api
+    runtime: node
+    region: ohio
+    plan: free
+    rootDir: apps/api
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DEV_BYPASS_AUTH
+        value: "false"
+      - key: FIREBASE_SERVICE_ACCOUNT_KEY
+        sync: false

@@ -3,27 +3,273 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Schema will be expanded in Phase 1
-// Placeholder model to validate Prisma setup
-model User {
-  id            String   @id @default(cuid())
-  firebaseUid   String   @unique @map("firebase_uid")
-  email         String   @unique
-  displayName   String?  @map("display_name")
-  photoUrl      String?  @map("photo_url")
-  role          Role     @default(MENTEE)
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  @@map("users")
-}
+// ─── ENUMS ───────────────────────────────────────────────
 
 enum Role {
   MENTOR
   MENTEE
   ADMIN
+}
+
+enum MatchStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  DECLINED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum SessionType {
+  VIDEO
+  AUDIO
+  IN_PERSON
+}
+
+enum ActionItemStatus {
+  PENDING
+  COMPLETED
+}
+
+enum PlanStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum GoalPeriod {
+  THIRTY_DAY
+  SIXTY_DAY
+  NINETY_DAY
+}
+
+enum GoalStatus {
+  PENDING
+  ON_TRACK
+  ACHIEVED
+  NEEDS_UPDATE
+}
+
+enum SoundingBoardMemberStatus {
+  ACTIVE
+  INVITED
+  PENDING
+}
+
+// ─── MODELS ──────────────────────────────────────────────
+
+model User {
+  id              String   @id @default(cuid())
+  firebaseUid     String   @unique @map("firebase_uid")
+  email           String   @unique
+  displayName     String?  @map("display_name")
+  photoUrl        String?  @map("photo_url")
+  role            Role     @default(MENTEE)
+  currentPosition String?  @map("current_position")
+  targetRole      String?  @map("target_role")
+  bio             String?
+  weekStreak      Int      @default(0) @map("week_streak")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  mentorProfile    MentorProfile?
+  matchesAsMentee  Match[]               @relation("MenteeMatches")
+  matchesAsMentor  Match[]               @relation("MentorMatches")
+  sessionsAsMentee Session[]             @relation("MenteeSessions")
+  sessionsAsMentor Session[]             @relation("MentorSessions")
+  assignedActions  ActionItem[]          @relation("AssignedActions")
+  ninetyDayPlans   NinetyDayPlan[]
+  goals            Goal[]
+  milestones       Milestone[]
+  sessionNotes     SessionNote[]
+  soundingBoard    SoundingBoard?        @relation("BoardOwner")
+  boardMemberships SoundingBoardMember[]
+
+  @@map("users")
+}
+
+model MentorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  expertise       String[]
+  industry        String?
+  yearsExperience Int?     @map("years_experience")
+  availability    String[]
+  bio             String?
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("mentor_profiles")
+}
+
+model Match {
+  id        String      @id @default(cuid())
+  menteeId  String      @map("mentee_id")
+  mentorId  String      @map("mentor_id")
+  score     Float?
+  reason    String?
+  status    MatchStatus @default(PENDING)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  mentee   User      @relation("MenteeMatches", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor   User      @relation("MentorMatches", fields: [mentorId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@unique([menteeId, mentorId])
+  @@map("matches")
+}
+
+model Session {
+  id          String        @id @default(cuid())
+  menteeId    String        @map("mentee_id")
+  mentorId    String        @map("mentor_id")
+  matchId     String?       @map("match_id")
+  scheduledAt DateTime      @map("scheduled_at")
+  duration    Int
+  type        SessionType   @default(VIDEO)
+  status      SessionStatus @default(SCHEDULED)
+  meetingLink String?       @map("meeting_link")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  mentee      User            @relation("MenteeSessions", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor      User            @relation("MentorSessions", fields: [mentorId], references: [id], onDelete: Cascade)
+  match       Match?          @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  summary     SessionSummary?
+  actionItems ActionItem[]
+  notes       SessionNote[]
+
+  @@map("sessions")
+}
+
+model SessionSummary {
+  id                  String   @id @default(cuid())
+  sessionId           String   @unique @map("session_id")
+  conversationSummary String   @map("conversation_summary")
+  keyTopics           String[] @map("key_topics")
+  keyInsights         String[] @map("key_insights")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("session_summaries")
+}
+
+model ActionItem {
+  id          String           @id @default(cuid())
+  sessionId   String           @map("session_id")
+  assigneeId  String           @map("assignee_id")
+  description String
+  dueDate     DateTime?        @map("due_date")
+  status      ActionItemStatus @default(PENDING)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  session  Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  assignee User    @relation("AssignedActions", fields: [assigneeId], references: [id], onDelete: Cascade)
+
+  @@map("action_items")
+}
+
+model SessionNote {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@map("session_notes")
+}
+
+model NinetyDayPlan {
+  id        String     @id @default(cuid())
+  userId    String     @map("user_id")
+  title     String?
+  startDate DateTime   @map("start_date")
+  status    PlanStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goals Goal[]
+
+  @@map("ninety_day_plans")
+}
+
+model Goal {
+  id            String     @id @default(cuid())
+  planId        String?    @map("plan_id")
+  userId        String     @map("user_id")
+  title         String
+  description   String?
+  period        GoalPeriod
+  status        GoalStatus @default(PENDING)
+  isAiSuggested Boolean    @default(false) @map("is_ai_suggested")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  plan NinetyDayPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  title       String
+  description String?
+  achievedAt  DateTime? @map("achieved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("milestones")
+}
+
+model SoundingBoard {
+  id        String   @id @default(cuid())
+  ownerId   String   @unique @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner   User                  @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members SoundingBoardMember[]
+
+  @@map("sounding_boards")
+}
+
+model SoundingBoardMember {
+  id           String                    @id @default(cuid())
+  boardId      String                    @map("board_id")
+  userId       String                    @map("user_id")
+  status       SoundingBoardMemberStatus @default(PENDING)
+  relationship String?
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
+
+  board SoundingBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, userId])
+  @@map("sounding_board_members")
 }

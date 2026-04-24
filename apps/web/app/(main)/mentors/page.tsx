@@ -1,10 +1,15 @@
-export const dynamic = 'force-dynamic';
+'use client';
+
+import { useState } from 'react';
+import { MentorDiscoveryForm } from '@/components/mentors/MentorDiscoveryForm';
+import { MentorList } from '@/components/mentors/MentorList';
 
 export default function MentorsPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Mentors</h1>
-      {/* Mentors listing will be implemented in Phase 4 */}
-    </div>
-  );
+  const [step, setStep] = useState<'form' | 'results'>('form');
+
+  if (step === 'results') {
+    return <MentorList onBack={() => setStep('form')} />;
+  }
+
+  return <MentorDiscoveryForm onComplete={() => setStep('results')} />;
 }

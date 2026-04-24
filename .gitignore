@@ -52,3 +52,4 @@ dify/dify-source/
 
 # n8n local data
 n8n-data/
+.vercel

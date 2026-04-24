@@ -4,6 +4,7 @@ import { mentorsRouter } from './mentors.js';
 import { matchesRouter } from './matches.js';
 import { sessionsRouter } from './sessions.js';
 import { goalsRouter } from './goals.js';
+import { aiRouter } from './ai.js';
 
 export const apiRouter = Router();
 
@@ -17,3 +18,4 @@ apiRouter.use('/mentors', mentorsRouter);
 apiRouter.use('/matches', matchesRouter);
 apiRouter.use('/sessions', sessionsRouter);
 apiRouter.use('/goals', goalsRouter);
+apiRouter.use('/ai', aiRouter);

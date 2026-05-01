@@ -16,6 +16,34 @@ const userSelect = {
   role: true,
 } as const;
 
+/**
+ * Dify workflow output nodes return LLM text as a string.
+ * This helper finds the first string value in outputs, strips
+ * markdown code fences, and parses it as JSON.
+ */
+function parseWorkflowJson(outputs: Record<string, unknown>): Record<string, unknown> {
+  let raw: string | undefined;
+  for (const val of Object.values(outputs)) {
+    if (typeof val === 'string') {
+      raw = val;
+      break;
+    }
+  }
+
+  if (!raw) {
+    throw new AppError('AI workflow returned empty output', 500);
+  }
+
+  // Strip markdown code fences (```json ... ```)
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    throw new AppError('AI workflow returned invalid JSON', 500);
+  }
+}
+
 export async function matchMentors(userId: string, criteria: MatchMentorsInput) {
   if (!MENTOR_MATCHER_KEY) {
     throw new AppError('Mentor matching is not configured', 503);
@@ -55,31 +83,36 @@ export async function matchMentors(userId: string, criteria: MatchMentorsInput) 
     userId
   );
 
-  // Parse Dify output — expects { mentors: [{ id, score, reason }] }
-  const ranked = (outputs.mentors as Array<{ id: string; score: number; reason: string }>) || [];
+  const parsed = parseWorkflowJson(outputs);
+  const ranked = (parsed.mentors as Array<{ id: string; score: number; reason: string }>) || [];
 
-  // Create Match records for each ranked mentor
+  // Filter to only mentor IDs that actually exist in the database
+  const validMentorIds = new Set(mentors.map((m) => m.userId));
+
+  // Create Match records for each valid ranked mentor
   const matches = await Promise.all(
-    ranked.map(async (r) => {
-      const existing = await prisma.match.findUnique({
-        where: { menteeId_mentorId: { menteeId: userId, mentorId: r.id } },
-      });
-      if (existing && existing.status !== 'DECLINED' && existing.status !== 'COMPLETED') {
-        return prisma.match.findUnique({
-          where: { id: existing.id },
+    ranked
+      .filter((r) => validMentorIds.has(r.id))
+      .map(async (r) => {
+        const existing = await prisma.match.findUnique({
+          where: { menteeId_mentorId: { menteeId: userId, mentorId: r.id } },
+        });
+        if (existing && existing.status !== 'DECLINED' && existing.status !== 'COMPLETED') {
+          return prisma.match.findUnique({
+            where: { id: existing.id },
+            include: { mentee: { select: userSelect }, mentor: { select: userSelect } },
+          });
+        }
+        return prisma.match.create({
+          data: {
+            menteeId: userId,
+            mentorId: r.id,
+            score: r.score,
+            reason: r.reason,
+          },
           include: { mentee: { select: userSelect }, mentor: { select: userSelect } },
         });
-      }
-      return prisma.match.create({
-        data: {
-          menteeId: userId,
-          mentorId: r.id,
-          score: r.score,
-          reason: r.reason,
-        },
-        include: { mentee: { select: userSelect }, mentor: { select: userSelect } },
-      });
-    })
+      })
   );
 
   return matches.filter(Boolean);
@@ -122,11 +155,11 @@ export async function summarizeSession(sessionId: string, userId: string) {
     userId
   );
 
-  // Expects { summary, topics[], actionItems[], insights[] }
-  const summary = (outputs.summary as string) || '';
-  const topics = (outputs.topics as string[]) || [];
-  const actionItems = (outputs.actionItems as Array<{ description: string; assignee: 'mentee' | 'mentor'; dueDate?: string }>) || [];
-  const insights = (outputs.insights as string[]) || [];
+  const parsed = parseWorkflowJson(outputs);
+  const summary = (parsed.summary as string) || '';
+  const topics = (parsed.topics as string[]) || [];
+  const actionItems = (parsed.actionItems as Array<{ description: string; assignee: 'mentee' | 'mentor'; dueDate?: string }>) || [];
+  const insights = (parsed.insights as string[]) || [];
 
   // Upsert SessionSummary + create ActionItems in a transaction
   const result = await prisma.$transaction(async (tx) => {
@@ -202,8 +235,8 @@ export async function generateLearningPath(userId: string) {
     userId
   );
 
-  // Expects { goals: [{ title, period, description }] }
-  return (outputs.goals as Array<{ title: string; period: string; description: string }>) || [];
+  const parsed = parseWorkflowJson(outputs);
+  return (parsed.goals as Array<{ title: string; period: string; description: string }>) || [];
 }
 
 export async function chatWithAdvisor(userId: string, input: ChatMessageInput) {

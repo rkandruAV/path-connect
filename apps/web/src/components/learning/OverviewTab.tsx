@@ -87,7 +87,7 @@ export function OverviewTab() {
                       item.percent === 100
                         ? 'bg-gray-800'
                         : item.percent > 0
-                          ? 'bg-primary-500'
+                          ? 'bg-accent-500'
                           : 'bg-gray-200'
                     }`}
                     style={{ width: `${item.percent}%` }}

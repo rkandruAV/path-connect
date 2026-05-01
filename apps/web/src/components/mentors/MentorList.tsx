@@ -66,7 +66,7 @@ export function MentorList({ onBack }: MentorListProps) {
             return (
               <div key={match.id} className="card">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-sm font-semibold text-primary-700 shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center text-sm font-semibold text-accent-700 shrink-0">
                     {initials}
                   </div>
                   <div className="flex-1 min-w-0">

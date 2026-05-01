@@ -24,8 +24,8 @@ export function InsightsTab() {
       {sessionsWithInsights.map((session) => (
         <div key={session.id} className="card">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center">
-              <span className="text-xs font-semibold text-primary-700">
+            <div className="w-7 h-7 rounded-full bg-accent-100 flex items-center justify-center">
+              <span className="text-xs font-semibold text-accent-700">
                 {session.mentor?.displayName?.[0] || '?'}
               </span>
             </div>
@@ -40,8 +40,8 @@ export function InsightsTab() {
           </div>
           <div className="space-y-2">
             {session.summary!.keyInsights.map((insight, index) => (
-              <div key={index} className="flex gap-2 p-2 bg-primary-50/50 rounded-lg">
-                <span className="w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-semibold text-primary-700 shrink-0">
+              <div key={index} className="flex gap-2 p-2 bg-accent-50/50 rounded-lg">
+                <span className="w-5 h-5 rounded-full bg-accent-100 flex items-center justify-center text-[10px] font-semibold text-accent-700 shrink-0">
                   {index + 1}
                 </span>
                 <p className="text-xs text-gray-600 leading-relaxed">{insight}</p>

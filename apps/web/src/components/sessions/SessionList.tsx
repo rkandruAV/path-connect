@@ -72,7 +72,7 @@ export function SessionList() {
               <Link key={session.id} href={`/sessions/${session.id}`}>
                 <div className="card hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-xs font-semibold text-primary-700 shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-xs font-semibold text-accent-700 shrink-0">
                       {initials}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -86,7 +86,7 @@ export function SessionList() {
                     </div>
                     <div className="flex items-center gap-2">
                       {session.summary && (
-                        <span className="px-2 py-0.5 text-[10px] font-medium bg-primary-50 text-primary-600 rounded-full">
+                        <span className="px-2 py-0.5 text-[10px] font-medium bg-accent-50 text-accent-700 rounded-full">
                           AI Summary
                         </span>
                       )}

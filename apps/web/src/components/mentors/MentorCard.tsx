@@ -18,7 +18,7 @@ export function MentorCard({ mentor, onConnect, connecting }: MentorCardProps) {
   return (
     <div className="card">
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-sm font-semibold text-primary-700 shrink-0">
+        <div className="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center text-sm font-semibold text-accent-700 shrink-0">
           {initials}
         </div>
         <div className="flex-1 min-w-0">
@@ -34,7 +34,7 @@ export function MentorCard({ mentor, onConnect, connecting }: MentorCardProps) {
             {mentor.expertise.slice(0, 4).map((skill) => (
               <span
                 key={skill}
-                className="px-2 py-0.5 text-[11px] font-medium bg-primary-50 text-primary-600 rounded-full"
+                className="px-2 py-0.5 text-[11px] font-medium bg-accent-50 text-accent-700 rounded-full"
               >
                 {skill}
               </span>

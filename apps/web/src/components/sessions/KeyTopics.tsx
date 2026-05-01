@@ -14,7 +14,7 @@ export function KeyTopics({ topics }: KeyTopicsProps) {
         {topics.map((topic) => (
           <span
             key={topic}
-            className="px-3 py-1 text-xs font-medium bg-primary-50 text-primary-600 rounded-full"
+            className="px-3 py-1 text-xs font-medium bg-accent-50 text-accent-700 rounded-full"
           >
             {topic}
           </span>

@@ -53,7 +53,7 @@ export function ActionsTab() {
                           {goal.status === 'ACHIEVED' ? 'Achieved' : goal.status === 'ON_TRACK' ? 'On Track' : goal.status === 'NEEDS_UPDATE' ? 'Needs Update' : 'Pending'}
                         </span>
                         {goal.isAiSuggested && (
-                          <span className="px-2 py-0.5 text-[10px] font-medium bg-primary-50 text-primary-600 rounded-full">
+                          <span className="px-2 py-0.5 text-[10px] font-medium bg-accent-50 text-accent-700 rounded-full">
                             AI Suggested
                           </span>
                         )}

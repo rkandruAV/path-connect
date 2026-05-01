@@ -29,7 +29,7 @@ export function FeatureCard({ href, icon, iconBgColor, title, subtitle, badge, c
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-gray-900">{title}</h3>
             {badge && (
-              <span className="px-2 py-0.5 text-[10px] font-medium bg-primary-50 text-primary-600 rounded-full">
+              <span className="px-2 py-0.5 text-[10px] font-medium bg-accent-50 text-accent-700 rounded-full">
                 {badge}
               </span>
             )}

@@ -31,7 +31,7 @@ export function UpcomingSession() {
   const sessionTime = format(new Date(nextSession.scheduledAt), 'h:mm a');
 
   return (
-    <div className="rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 p-5 text-white mb-6">
+    <div className="rounded-xl bg-gradient-to-r from-primary-800 to-primary-700 p-5 text-white mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
@@ -47,7 +47,7 @@ export function UpcomingSession() {
         </div>
         <Link
           href={`/sessions/${nextSession.id}`}
-          className="px-4 py-2 bg-white text-primary-600 font-medium rounded-lg text-sm hover:bg-primary-50 transition-colors"
+          className="px-4 py-2 bg-accent-400 text-primary-900 font-medium rounded-lg text-sm hover:bg-accent-300 transition-colors"
         >
           Join
         </Link>

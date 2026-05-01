@@ -26,7 +26,7 @@ export function SessionDetailHeader({ session }: SessionDetailHeaderProps) {
       </Link>
 
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-lg font-semibold text-primary-700">
+        <div className="w-14 h-14 rounded-full bg-accent-100 flex items-center justify-center text-lg font-semibold text-accent-700">
           {initials}
         </div>
         <div className="flex-1">
@@ -50,7 +50,7 @@ export function SessionDetailHeader({ session }: SessionDetailHeaderProps) {
 
       {session.summary && (
         <div className="mt-3">
-          <span className="px-3 py-1 text-xs font-medium bg-primary-50 text-primary-600 rounded-full">
+          <span className="px-3 py-1 text-xs font-medium bg-accent-50 text-accent-700 rounded-full">
             AI-Captured Summary
           </span>
         </div>

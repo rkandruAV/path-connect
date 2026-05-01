@@ -23,8 +23,8 @@ export function KeyInsights({ insights }: KeyInsightsProps) {
 
       <div className="space-y-3">
         {insights.map((insight, index) => (
-          <div key={index} className="flex gap-3 p-3 bg-primary-50/50 rounded-lg">
-            <span className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-xs font-semibold text-primary-700 shrink-0">
+          <div key={index} className="flex gap-3 p-3 bg-accent-50/50 rounded-lg">
+            <span className="w-6 h-6 rounded-full bg-accent-100 flex items-center justify-center text-xs font-semibold text-accent-700 shrink-0">
               {index + 1}
             </span>
             <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>

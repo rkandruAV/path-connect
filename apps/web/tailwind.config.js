@@ -21,6 +21,11 @@ module.exports = {
           900: '#1a2a3a',
           950: '#131e2b',
         },
+        cream: {
+          50: '#fdfcfa',
+          100: '#faf8f5',
+          200: '#f5f0ea',
+        },
         accent: {
           50: '#fef9f0',
           100: '#fdf0d5',

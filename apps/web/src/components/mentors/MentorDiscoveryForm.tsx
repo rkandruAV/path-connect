@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useUpdateProfile } from '@/hooks/useUser';
+import { useMatchMentors } from '@/hooks/useDify';
 
 interface MentorDiscoveryFormProps {
   onComplete: () => void;
@@ -13,7 +14,9 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
   const [currentPosition, setCurrentPosition] = useState('');
   const [goals, setGoals] = useState('');
   const updateProfile = useUpdateProfile();
+  const matchMentors = useMatchMentors();
 
+  const isPending = updateProfile.isPending || matchMentors.isPending;
   const isValid = targetRole.trim() && currentPosition.trim() && goals.trim();
 
   const handleSubmit = async () => {
@@ -22,6 +25,11 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
       targetRole: targetRole.trim(),
       currentPosition: currentPosition.trim(),
       bio: goals.trim(),
+    });
+    await matchMentors.mutateAsync({
+      targetRole: targetRole.trim(),
+      currentPosition: currentPosition.trim(),
+      goals: goals.trim(),
     });
     onComplete();
   };
@@ -114,14 +122,14 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
 
       <button
         onClick={handleSubmit}
-        disabled={!isValid || updateProfile.isPending}
+        disabled={!isValid || isPending}
         className={`w-full mt-6 py-3 rounded-lg font-medium transition-colors ${
           isValid
             ? 'btn-primary'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
         }`}
       >
-        {updateProfile.isPending ? 'Saving...' : 'Next →'}
+        {isPending ? (matchMentors.isPending ? 'Finding your matches...' : 'Saving...') : 'Next →'}
       </button>
       {!isValid && (
         <p className="text-center text-xs text-gray-400 mt-2">Please fill in all fields to continue</p>

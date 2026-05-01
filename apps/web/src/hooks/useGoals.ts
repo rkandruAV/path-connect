@@ -22,3 +22,15 @@ export function useUpdateGoal() {
     },
   });
 }
+
+export function useCreateGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { title: string; period: GoalPeriod; planId?: string; description?: string }) =>
+      goalService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+  });
+}

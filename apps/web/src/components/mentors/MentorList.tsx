@@ -1,20 +1,23 @@
 'use client';
 
-import { useMentors } from '@/hooks/useMentors';
-import { useCreateMatch } from '@/hooks/useMatches';
-import { MentorCard } from './MentorCard';
+import { useMatches } from '@/hooks/useMatches';
+import { matchService } from '@/services/matchService';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface MentorListProps {
   onBack: () => void;
 }
 
 export function MentorList({ onBack }: MentorListProps) {
-  const { data, isLoading } = useMentors();
-  const createMatch = useCreateMatch();
+  const { data, isLoading } = useMatches({ status: 'PENDING' });
+  const queryClient = useQueryClient();
 
-  const handleConnect = (mentorUserId: string) => {
-    createMatch.mutate({ mentorId: mentorUserId });
-  };
+  const acceptMatch = useMutation({
+    mutationFn: (matchId: string) => matchService.updateStatus(matchId, 'ACTIVE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] });
+    },
+  });
 
   return (
     <div>
@@ -29,7 +32,7 @@ export function MentorList({ onBack }: MentorListProps) {
       </button>
 
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Recommended Mentors</h1>
-      <p className="text-gray-500 mb-6">Based on your career goals and experience</p>
+      <p className="text-gray-500 mb-6">AI-matched based on your career goals and experience</p>
 
       {isLoading ? (
         <div className="space-y-4">
@@ -51,22 +54,51 @@ export function MentorList({ onBack }: MentorListProps) {
         </div>
       ) : data?.data?.length ? (
         <div className="space-y-4">
-          {data.data.map((mentor) => (
-            <MentorCard
-              key={mentor.id}
-              mentor={mentor}
-              onConnect={handleConnect}
-              connecting={createMatch.isPending}
-            />
-          ))}
+          {data.data.map((match) => {
+            const mentor = match.mentor;
+            if (!mentor) return null;
+            const initials = mentor.displayName
+              ?.split(' ')
+              .map((n: string) => n[0])
+              .join('')
+              .toUpperCase() || '?';
+
+            return (
+              <div key={match.id} className="card">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-sm font-semibold text-primary-700 shrink-0">
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900">{mentor.displayName}</h3>
+                    {match.score && (
+                      <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium bg-green-50 text-green-700 rounded-full">
+                        {match.score}% match
+                      </span>
+                    )}
+                    {match.reason && (
+                      <p className="text-sm text-gray-500 mt-1">{match.reason}</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => acceptMatch.mutate(match.id)}
+                  disabled={acceptMatch.isPending}
+                  className="btn-primary w-full mt-4 text-sm"
+                >
+                  {acceptMatch.isPending ? 'Connecting...' : 'Connect'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="card text-center py-8">
-          <p className="text-gray-500">No mentors found. Check back later!</p>
+          <p className="text-gray-500">No mentor matches found. Try adjusting your goals!</p>
         </div>
       )}
 
-      {createMatch.isSuccess && (
+      {acceptMatch.isSuccess && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg shadow-lg">
           Connection request sent!
         </div>

@@ -1,24 +1,21 @@
 import api from '@/lib/api';
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
+export interface MatchMentorsInput {
+  targetRole?: string;
+  currentPosition?: string;
+  goals?: string;
 }
 
-export interface LearningPath {
-  id: string;
+export interface LearningPathGoal {
   title: string;
-  milestones: {
-    title: string;
-    description: string;
-    resources: string[];
-    completed: boolean;
-  }[];
-  progress: number;
+  period: string;
+  description: string;
 }
 
 export const difyService = {
+  matchMentors: (data: MatchMentorsInput) =>
+    api.post<{ data: unknown[]; message: string }>('/ai/match-mentors', data).then((r) => r.data),
+
   chat: (message: string, conversationId?: string) =>
     api.post<{ data: { answer: string; conversationId: string } }>('/ai/chat', {
       message,
@@ -26,8 +23,8 @@ export const difyService = {
     }).then((r) => r.data),
 
   getLearningPath: () =>
-    api.get<{ data: LearningPath }>('/ai/learning-path').then((r) => r.data),
+    api.get<{ data: LearningPathGoal[] }>('/ai/learning-path').then((r) => r.data),
 
   generateSessionSummary: (sessionId: string) =>
-    api.post<{ data: { summary: string; actionItems: string[] } }>(`/ai/sessions/${sessionId}/summarize`).then((r) => r.data),
+    api.post<{ data: unknown }>(`/ai/sessions/${sessionId}/summarize`).then((r) => r.data),
 };

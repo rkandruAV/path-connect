@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUser } from '@/hooks/useUser';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -14,8 +16,16 @@ const navItems = [
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
+  const { data: profile } = useCurrentUser();
   const pathname = usePathname();
   const router = useRouter();
+
+  // Redirect mentors without a profile to onboarding
+  useEffect(() => {
+    if (profile && profile.role === 'MENTOR' && !profile.mentorProfile && pathname !== '/onboarding') {
+      router.replace('/onboarding');
+    }
+  }, [profile, pathname, router]);
 
   if (loading) {
     return (

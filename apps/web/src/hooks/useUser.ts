@@ -1,9 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService } from '@/services/userService';
+import { userService, type UpdateMeInput } from '@/services/userService';
 import { useAuthStore } from '@/stores/authStore';
-import type { UserProfile } from '@path-connect/shared';
 
 export function useCurrentUser() {
   const { user: firebaseUser, loading } = useAuthStore();
@@ -19,7 +18,7 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Pick<UserProfile, 'displayName' | 'currentPosition' | 'targetRole' | 'bio'>>) =>
+    mutationFn: (data: UpdateMeInput) =>
       userService.updateMe(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user', 'me'] });

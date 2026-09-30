@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { matchMentorsSchema } from '@path-connect/shared';
 import { useUpdateProfile } from '@/hooks/useUser';
 import { useMatchMentors } from '@/hooks/useDify';
 
@@ -13,6 +14,7 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
   const [targetRole, setTargetRole] = useState('');
   const [currentPosition, setCurrentPosition] = useState('');
   const [goals, setGoals] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const updateProfile = useUpdateProfile();
   const matchMentors = useMatchMentors();
 
@@ -21,16 +23,25 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
 
   const handleSubmit = async () => {
     if (!isValid) return;
-    await updateProfile.mutateAsync({
-      targetRole: targetRole.trim(),
-      currentPosition: currentPosition.trim(),
-      bio: goals.trim(),
-    });
-    await matchMentors.mutateAsync({
+    const data = {
       targetRole: targetRole.trim(),
       currentPosition: currentPosition.trim(),
       goals: goals.trim(),
+    };
+    const result = matchMentorsSchema.safeParse(data);
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((e) => { errors[e.path.join('.')] = e.message; });
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    await updateProfile.mutateAsync({
+      targetRole: data.targetRole,
+      currentPosition: data.currentPosition,
+      bio: data.goals,
     });
+    await matchMentors.mutateAsync(data);
     onComplete();
   };
 
@@ -70,9 +81,12 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
             type="text"
             value={targetRole}
             onChange={(e) => setTargetRole(e.target.value)}
+            maxLength={200}
             className="input"
             placeholder="e.g., Product Manager, Software Engineer..."
           />
+          {fieldErrors.targetRole && <p className="text-xs text-red-500 mt-1">{fieldErrors.targetRole}</p>}
+          <p className="text-xs text-gray-400 mt-1 text-right">{targetRole.length}/200</p>
         </div>
 
         <div className="bg-primary-50 rounded-xl p-5">
@@ -93,9 +107,12 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
             type="text"
             value={currentPosition}
             onChange={(e) => setCurrentPosition(e.target.value)}
+            maxLength={200}
             className="input"
             placeholder="e.g., Marketing Manager with 5 years experience..."
           />
+          {fieldErrors.currentPosition && <p className="text-xs text-red-500 mt-1">{fieldErrors.currentPosition}</p>}
+          <p className="text-xs text-gray-400 mt-1 text-right">{currentPosition.length}/200</p>
         </div>
 
         <div className="bg-primary-50 rounded-xl p-5">
@@ -114,9 +131,12 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
           <textarea
             value={goals}
             onChange={(e) => setGoals(e.target.value)}
+            maxLength={2000}
             className="input min-h-[100px] resize-none"
             placeholder="e.g., Land my first PM interview, Build a portfolio, Network with industry professionals..."
           />
+          {fieldErrors.goals && <p className="text-xs text-red-500 mt-1">{fieldErrors.goals}</p>}
+          <p className="text-xs text-gray-400 mt-1 text-right">{goals.length}/2000</p>
         </div>
       </div>
 

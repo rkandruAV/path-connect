@@ -1,19 +1,8 @@
 import { z } from 'zod';
 
-export const matchMentorsSchema = z.object({
-  targetRole: z.string().max(200).optional(),
-  currentPosition: z.string().max(200).optional(),
-  goals: z.string().max(2000).optional(),
-});
-
-export type MatchMentorsInput = z.infer<typeof matchMentorsSchema>;
-
-export const chatMessageSchema = z.object({
-  message: z.string().min(1).max(2000),
-  conversationId: z.string().optional(),
-});
-
-export type ChatMessageInput = z.infer<typeof chatMessageSchema>;
+// Re-export shared schemas so existing backend imports continue to work
+export { matchMentorsSchema, chatMessageSchema } from '@path-connect/shared';
+export type { MatchMentorsInput, ChatMessageInput } from '@path-connect/shared';
 
 export const sessionIdParamsSchema = z.object({
   id: z.string().min(1),

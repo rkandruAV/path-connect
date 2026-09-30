@@ -1,5 +1,26 @@
 // Shared types and utilities for PathConnect
 
+// ─── Shared Validators (Zod schemas used by both frontend & backend) ─
+export {
+  matchMentorsSchema,
+  chatMessageSchema,
+  sessionNotesSchema,
+  createSessionSchema,
+  mentorProfileSchema,
+  updateUserSchema,
+  createGoalSchema,
+} from './validators';
+
+export type {
+  MatchMentorsInput,
+  ChatMessageInput,
+  SessionNotesInput,
+  CreateSessionInput,
+  MentorProfileInput,
+  UpdateUserInput,
+  CreateGoalInput,
+} from './validators';
+
 // ─── Generic Response Types ──────────────────────────────
 
 export interface ApiResponse<T> {

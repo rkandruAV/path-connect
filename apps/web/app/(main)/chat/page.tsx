@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useChatWithAdvisor } from '@/hooks/useDify';
+import { chatMessageSchema } from '@path-connect/shared';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,6 +23,9 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!input.trim() || chat.isPending) return;
+
+    const result = chatMessageSchema.safeParse({ message: input.trim(), conversationId });
+    if (!result.success) return;
 
     const userMessage = input.trim();
     setInput('');
@@ -93,15 +97,23 @@ export default function ChatPage() {
       </div>
 
       <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-          placeholder="Ask your AI advisor..."
-          className="input flex-1"
-          disabled={chat.isPending}
-        />
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+            placeholder="Ask your AI advisor..."
+            className="input w-full"
+            maxLength={2000}
+            disabled={chat.isPending}
+          />
+          {input.length > 1800 && (
+            <span className={`absolute right-2 bottom-1 text-xs ${input.length >= 2000 ? 'text-red-500' : 'text-gray-400'}`}>
+              {input.length}/2000
+            </span>
+          )}
+        </div>
         <button
           onClick={handleSend}
           disabled={!input.trim() || chat.isPending}

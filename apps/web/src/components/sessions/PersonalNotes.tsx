@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useUpsertNotes } from '@/hooks/useSessions';
+import { sessionNotesSchema } from '@path-connect/shared';
 
 interface PersonalNotesProps {
   sessionId: string;
@@ -11,10 +12,16 @@ interface PersonalNotesProps {
 export function PersonalNotes({ sessionId, existingNote }: PersonalNotesProps) {
   const [content, setContent] = useState(existingNote || '');
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
   const upsertNotes = useUpsertNotes();
 
   const handleSave = async () => {
-    if (!content.trim()) return;
+    const result = sessionNotesSchema.safeParse({ content: content.trim() });
+    if (!result.success) {
+      setError(result.error.errors[0]?.message || 'Invalid input');
+      return;
+    }
+    setError('');
     await upsertNotes.mutateAsync({ sessionId, content: content.trim() });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -27,10 +34,21 @@ export function PersonalNotes({ sessionId, existingNote }: PersonalNotesProps) {
 
       <textarea
         value={content}
-        onChange={(e) => { setContent(e.target.value); setSaved(false); }}
-        className="input min-h-[120px] resize-none mb-3"
+        onChange={(e) => { setContent(e.target.value); setSaved(false); setError(''); }}
+        className="input min-h-[120px] resize-none mb-1"
+        maxLength={10000}
         placeholder="What are you thinking about after this session? Any additional reflections..."
       />
+      <div className="flex justify-between items-center mb-3">
+        {error ? (
+          <p className="text-xs text-red-500">{error}</p>
+        ) : (
+          <span />
+        )}
+        <span className={`text-xs ${content.length > 9000 ? 'text-amber-500' : 'text-gray-400'}`}>
+          {content.length}/10000
+        </span>
+      </div>
 
       <button
         onClick={handleSave}

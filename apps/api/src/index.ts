@@ -1,4 +1,9 @@
 import 'dotenv/config';
+import { initSentry } from './lib/sentry.js';
+
+// Initialize Sentry before anything else
+initSentry();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

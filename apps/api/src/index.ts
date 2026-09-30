@@ -4,10 +4,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { swaggerSpec } from './swagger.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -45,6 +47,10 @@ const aiLimiter = rateLimit({
 
 app.use('/api/v1/ai', aiLimiter);
 app.use('/api/v1', generalLimiter);
+
+// API docs
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api/docs.json', (_req, res) => res.json(swaggerSpec));
 
 // Routes
 app.use('/api/v1', apiRouter);

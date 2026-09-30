@@ -10,7 +10,40 @@ import { aiRouter } from './ai.js';
 
 export const apiRouter = Router();
 
-// Health check with dependency status (no auth required)
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     summary: Health check
+ *     description: Returns service status and dependency connectivity
+ *     tags: [Health]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Service healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   enum: [ok, degraded]
+ *                 service:
+ *                   type: string
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 dependencies:
+ *                   type: object
+ *                   properties:
+ *                     database:
+ *                       type: string
+ *                     redis:
+ *                       type: string
+ *       503:
+ *         description: Service degraded (database unreachable)
+ */
 apiRouter.get('/health', async (_req, res) => {
   const deps: Record<string, string> = {};
   let status = 'ok';

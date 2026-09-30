@@ -175,6 +175,14 @@ npm run docker:down   # Stop containers
 npm run docker:prod   # Start production build
 ```
 
+## Roadmap
+
+- [x] **Phase 0** — Project scaffolding, monorepo setup, Docker, database schema
+- [x] **MVP1** — AI mentor matching, session management, session summaries, learning paths, AI advisor chat, goal tracking (5 screens)
+- [x] **Production Hardening** — Rate limiting, Redis caching, shared validation, Swagger docs, Sentry, test suite (41 tests)
+- [ ] **MVP2** — 90-day plan management, Google Calendar scheduling (n8n), sounding board (3 screens)
+- [ ] **MVP3** — Become a mentor flow, mentor match management, notifications (3 screens)
+
 ## Documentation
 
 - [Product Requirements (PRD)](docs/PRD.md)

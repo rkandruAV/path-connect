@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { redis } from '../lib/redis.js';
 import { usersRouter } from './users.js';
 import { mentorsRouter } from './mentors.js';
 import { matchesRouter } from './matches.js';
@@ -11,24 +12,34 @@ export const apiRouter = Router();
 
 // Health check with dependency status (no auth required)
 apiRouter.get('/health', async (_req, res) => {
-  const health: Record<string, unknown> = {
-    status: 'ok',
-    service: 'path-connect-api',
-    timestamp: new Date().toISOString(),
-    dependencies: {} as Record<string, string>,
-  };
+  const deps: Record<string, string> = {};
+  let status = 'ok';
 
   // Check database connectivity
   try {
     await prisma.$queryRaw`SELECT 1`;
-    (health.dependencies as Record<string, string>).database = 'ok';
+    deps.database = 'ok';
   } catch {
-    (health.dependencies as Record<string, string>).database = 'unreachable';
-    health.status = 'degraded';
+    deps.database = 'unreachable';
+    status = 'degraded';
   }
 
-  const statusCode = health.status === 'ok' ? 200 : 503;
-  res.status(statusCode).json(health);
+  // Check Redis connectivity
+  try {
+    await redis.ping();
+    deps.redis = 'ok';
+  } catch {
+    deps.redis = 'unreachable';
+    // Redis is non-critical — app works without it (cache miss fallback)
+  }
+
+  const statusCode = status === 'ok' ? 200 : 503;
+  res.status(statusCode).json({
+    status,
+    service: 'path-connect-api',
+    timestamp: new Date().toISOString(),
+    dependencies: deps,
+  });
 });
 
 apiRouter.use('/users', usersRouter);

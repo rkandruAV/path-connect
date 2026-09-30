@@ -1,5 +1,6 @@
 import { prisma } from '../lib/prisma.js';
 import { runWorkflow, sendChatMessage } from '../lib/dify.js';
+import { cached, invalidateCache } from '../lib/redis.js';
 import { AppError, NotFoundError, ForbiddenError } from '../utils/errors.js';
 import type { MatchMentorsInput, ChatMessageInput } from '../validators/ai.validator.js';
 
@@ -52,10 +53,13 @@ export async function matchMentors(userId: string, criteria: MatchMentorsInput) 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new NotFoundError('User', userId);
 
-  const mentors = await prisma.mentorProfile.findMany({
-    where: { isActive: true },
-    include: { user: { select: userSelect } },
-  });
+  // Cache active mentor list for 1 hour — avoids DB query on every match request
+  const mentors = await cached('mentors:active', 3600, () =>
+    prisma.mentorProfile.findMany({
+      where: { isActive: true },
+      include: { user: { select: userSelect } },
+    })
+  );
 
   if (mentors.length === 0) {
     return [];
@@ -237,35 +241,38 @@ export async function generateLearningPath(userId: string) {
     throw new AppError('Learning path generation is not configured', 503);
   }
 
-  const [user, goals, milestones, recentSummaries] = await Promise.all([
-    prisma.user.findUnique({ where: { id: userId } }),
-    prisma.goal.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 20 }),
-    prisma.milestone.findMany({ where: { userId }, orderBy: { achievedAt: 'desc' }, take: 10 }),
-    prisma.sessionSummary.findMany({
-      where: { session: { OR: [{ menteeId: userId }, { mentorId: userId }] } },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    }),
-  ]);
+  // Cache learning path per user for 12 hours — avoids repeat Dify calls
+  return cached(`learning-path:${userId}`, 43200, async () => {
+    const [user, goals, milestones, recentSummaries] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId } }),
+      prisma.goal.findMany({ where: { userId }, orderBy: { createdAt: 'desc' }, take: 20 }),
+      prisma.milestone.findMany({ where: { userId }, orderBy: { achievedAt: 'desc' }, take: 10 }),
+      prisma.sessionSummary.findMany({
+        where: { session: { OR: [{ menteeId: userId }, { mentorId: userId }] } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+    ]);
 
-  if (!user) throw new NotFoundError('User', userId);
+    if (!user) throw new NotFoundError('User', userId);
 
-  const userContext = {
-    currentPosition: user.currentPosition || '',
-    targetRole: user.targetRole || '',
-    existingGoals: goals.map((g) => ({ title: g.title, period: g.period, status: g.status })),
-    milestones: milestones.map((m) => ({ title: m.title, description: m.description })),
-    recentInsights: recentSummaries.flatMap((s) => s.keyInsights),
-  };
+    const userContext = {
+      currentPosition: user.currentPosition || '',
+      targetRole: user.targetRole || '',
+      existingGoals: goals.map((g) => ({ title: g.title, period: g.period, status: g.status })),
+      milestones: milestones.map((m) => ({ title: m.title, description: m.description })),
+      recentInsights: recentSummaries.flatMap((s) => s.keyInsights),
+    };
 
-  const outputs = await runWorkflow(
-    LEARNING_PATH_KEY,
-    { user_context: JSON.stringify(userContext) },
-    userId
-  );
+    const outputs = await runWorkflow(
+      LEARNING_PATH_KEY,
+      { user_context: JSON.stringify(userContext) },
+      userId
+    );
 
-  const parsed = parseWorkflowJson(outputs);
-  return (parsed.goals as Array<{ title: string; period: string; description: string }>) || [];
+    const parsed = parseWorkflowJson(outputs);
+    return (parsed.goals as Array<{ title: string; period: string; description: string }>) || [];
+  });
 }
 
 export async function chatWithAdvisor(userId: string, input: ChatMessageInput) {

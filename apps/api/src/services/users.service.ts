@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { invalidateCache } from '../lib/redis.js';
 import { NotFoundError } from '../utils/errors.js';
 import type { CreateUserInput, UpdateUserInput } from '../validators/users.validator.js';
 
@@ -14,7 +15,7 @@ export async function getUserWithProfile(userId: string) {
 export async function createOrUpdateUser(userId: string, data: CreateUserInput) {
   const { mentorProfile, ...userData } = data;
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.update({
       where: { id: userId },
       data: userData,
@@ -33,12 +34,18 @@ export async function createOrUpdateUser(userId: string, data: CreateUserInput) 
       include: { mentorProfile: true },
     });
   });
+
+  if (data.mentorProfile) {
+    await invalidateCache('mentors:active');
+  }
+
+  return result;
 }
 
 export async function updateUser(userId: string, data: UpdateUserInput) {
   const { mentorProfile, ...userData } = data;
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.update({
       where: { id: userId },
       data: userData,
@@ -57,4 +64,10 @@ export async function updateUser(userId: string, data: UpdateUserInput) {
       include: { mentorProfile: true },
     });
   });
+
+  if (data.mentorProfile) {
+    await invalidateCache('mentors:active');
+  }
+
+  return result;
 }

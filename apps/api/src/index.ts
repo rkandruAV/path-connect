@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
 import { apiRouter } from './routes/index.js';
@@ -23,6 +24,27 @@ app.use(cors({ origin: process.env.CORS_ORIGIN
     : 'http://localhost:3000' }));
 app.use(morgan('dev'));
 app.use(express.json());
+
+// Rate limiting — general API: 100 requests per 15 minutes per IP
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { data: null, message: 'Too many requests, please try again later' },
+});
+
+// Stricter rate limit for AI endpoints: 20 requests per 15 minutes per IP
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { data: null, message: 'AI request limit exceeded, please try again later' },
+});
+
+app.use('/api/v1/ai', aiLimiter);
+app.use('/api/v1', generalLimiter);
 
 // Routes
 app.use('/api/v1', apiRouter);

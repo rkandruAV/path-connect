@@ -14,8 +14,8 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
           return next();
         }
       }
-      // Fallback: use first user in DB
-      const user = await prisma.user.findFirst();
+      // Fallback: use first mentee in DB (most common dev scenario)
+      const user = await prisma.user.findFirst({ where: { role: 'MENTEE' } });
       if (user) {
         req.user = user;
         return next();

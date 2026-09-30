@@ -84,18 +84,47 @@ export async function matchMentors(userId: string, criteria: MatchMentorsInput) 
   );
 
   const parsed = parseWorkflowJson(outputs);
-  const ranked = (parsed.mentors as Array<{ id: string; score: number; reason: string }>) || [];
+  console.log('[matchMentors] Parsed response:', JSON.stringify(parsed, null, 2));
+  const ranked = (parsed.mentors as Array<{ id: string; score: number; reason: string; name?: string }>) || [];
 
-  // Filter to only mentor IDs that actually exist in the database
+  // Build lookup maps: the LLM may return exact DB IDs or hallucinated ones.
+  // Fall back to name-based matching when the returned ID isn't in the database.
   const validMentorIds = new Set(mentors.map((m) => m.userId));
+  const mentorByName = new Map(
+    mentors.map((m) => [(m.user.displayName || m.user.email).toLowerCase(), m.userId])
+  );
+
+  function resolveMentorId(r: { id: string; reason: string; name?: string }): string | null {
+    if (validMentorIds.has(r.id)) return r.id;
+    // Try matching by name field if the LLM included one
+    if (r.name) {
+      const byName = mentorByName.get(r.name.toLowerCase());
+      if (byName) return byName;
+    }
+    // Try extracting a name from the reason text
+    for (const [name, id] of mentorByName) {
+      const firstName = name.split(' ')[0];
+      if (firstName && r.reason.toLowerCase().includes(firstName)) return id;
+    }
+    return null;
+  }
+
+  // Deduplicate: keep highest-scored match per mentor
+  const seen = new Set<string>();
+  const resolvedRanked = ranked
+    .map((r) => ({ ...r, resolvedId: resolveMentorId(r) }))
+    .filter((r): r is typeof r & { resolvedId: string } => {
+      if (!r.resolvedId || seen.has(r.resolvedId)) return false;
+      seen.add(r.resolvedId);
+      return true;
+    });
 
   // Create Match records for each valid ranked mentor
   const matches = await Promise.all(
-    ranked
-      .filter((r) => validMentorIds.has(r.id))
+    resolvedRanked
       .map(async (r) => {
         const existing = await prisma.match.findUnique({
-          where: { menteeId_mentorId: { menteeId: userId, mentorId: r.id } },
+          where: { menteeId_mentorId: { menteeId: userId, mentorId: r.resolvedId } },
         });
         if (existing && existing.status !== 'DECLINED' && existing.status !== 'COMPLETED') {
           return prisma.match.findUnique({
@@ -106,7 +135,7 @@ export async function matchMentors(userId: string, criteria: MatchMentorsInput) 
         return prisma.match.create({
           data: {
             menteeId: userId,
-            mentorId: r.id,
+            mentorId: r.resolvedId,
             score: r.score,
             reason: r.reason,
           },

@@ -6,12 +6,18 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUser } from '@/hooks/useUser';
 
-const navItems = [
+const menteeNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/mentors', label: 'Mentors', icon: '👥' },
+  { path: '/mentors', label: 'Find Mentor', icon: '🔍' },
   { path: '/sessions', label: 'Sessions', icon: '📅' },
-  { path: '/chat', label: 'AI Chat', icon: '💬' },
-  { path: '/learning-path', label: 'Learning', icon: '📚' },
+  { path: '/learning-path', label: 'Learning Path', icon: '📚' },
+  { path: '/chat', label: 'AI Advisor', icon: '💬' },
+];
+
+const mentorNavItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/sessions', label: 'Sessions', icon: '📅' },
+  { path: '/chat', label: 'AI Advisor', icon: '💬' },
 ];
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
@@ -55,7 +61,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => (
+          {(profile?.role === 'MENTOR' ? mentorNavItems : menteeNavItems).map((item) => (
             <Link
               key={item.path}
               href={item.path}
@@ -78,7 +84,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.displayName || user?.email}
+                {profile?.displayName || user?.displayName || user?.email}
+              </p>
+              <p className="text-xs text-gray-500">
+                {profile?.role === 'MENTOR' ? 'Mentor' : profile?.role === 'ADMIN' ? 'Admin' : 'Mentee'}
               </p>
             </div>
           </div>

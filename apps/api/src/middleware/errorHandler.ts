@@ -1,8 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/errors.js';
 
-export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    method: req.method,
+    path: req.path,
+    error: err.message,
+    stack: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+  };
+
   if (err instanceof AppError) {
+    if (err.statusCode >= 500) {
+      console.error(JSON.stringify({ ...logEntry, statusCode: err.statusCode, level: 'error' }));
+    }
     const response: Record<string, unknown> = {
       data: null,
       message: err.message,
@@ -14,8 +25,8 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
     return;
   }
 
-  // Unexpected errors
-  console.error('Unhandled error:', err);
+  // Unexpected errors — always log
+  console.error(JSON.stringify({ ...logEntry, level: 'error', type: 'unhandled' }));
   res.status(500).json({
     data: null,
     message: process.env.NODE_ENV === 'production'

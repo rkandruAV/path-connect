@@ -4,83 +4,107 @@ AI-powered mentorship platform that connects mentees with mentors using intellig
 
 ## Features
 
-- **AI Mentor Matching** — Dify-powered RAG matches mentees with the right mentors based on career goals, skills, and experience
+- **AI Mentor Matching** — Dify-powered workflows match mentees with the right mentors based on career goals, skills, and experience
 - **Session Summaries** — AI-generated conversation summaries, action items, and key insights after each session
-- **90-Day Action Plans** — Personalized AI-suggested goals with 30/60/90 day milestones
-- **Progress Tracking** — Visual progress bars, skills mastered checklists, and milestone tracking
-- **Sounding Board** — Private peer support network for async feedback and discussions
-- **Mentorship Loop** — Complete the cycle by becoming a mentor and matching with mentees
-- **Smart Scheduling** — Automated session scheduling via Google Calendar with Slack notifications
+- **AI Career Advisor** — Multi-turn chatbot for career guidance, interview prep, and skill development
+- **90-Day Learning Paths** — AI-generated personalized goals with 30/60/90 day milestones
+- **Progress Tracking** — Goal status tracking, week streaks, and milestone achievements
+- **Session Notes** — Private per-user notes for each mentoring session
+- **Sounding Board** — Peer support network for async feedback (data model ready)
 
 ## Architecture
 
 ```
-Vercel (Frontend)          Backend Services
-┌──────────┐     ┌──────────────────────────────────┐
-│ Next.js  │────▶│  Node.js API (Express + Prisma)  │
-│ Frontend │     │           │                       │
-└──────────┘     │     ┌─────┴──────┐                │
-                 │     │ PostgreSQL │ (Supabase)     │
-                 │     └────────────┘                │
-                 │                                    │
-                 │  ┌────────────┐  ┌─────────────┐  │
-                 │  │ Dify Cloud │  │ n8n         │  │
-                 │  │ (AI Mentor)│  │ (Scheduling)│  │
-                 │  └────────────┘  └─────────────┘  │
-                 └──────────────────────────────────┘
+                    ┌─────────────┐
+                    │   Firebase   │
+                    │  Auth (JWT)  │
+                    └──────┬──────┘
+                           │
+┌──────────────────────────┼──────────────────────────┐
+│                          │                          │
+│  ┌───────────┐    ┌──────┴──────┐    ┌───────────┐ │
+│  │  Vercel   │    │   Render    │    │ Supabase  │ │
+│  │           │───▶│             │───▶│           │ │
+│  │  Next.js  │    │  Express.js │    │ PostgreSQL│ │
+│  │ Frontend  │    │   API       │    │           │ │
+│  └───────────┘    └──────┬──────┘    └───────────┘ │
+│                          │                          │
+│                    ┌─────┴─────┐                    │
+│                    │           │                    │
+│              ┌─────┴──┐  ┌────┴────┐               │
+│              │ Dify   │  │  Redis  │               │
+│              │ Cloud  │  │ (cache) │               │
+│              │ (AI)   │  │         │               │
+│              └────────┘  └─────────┘               │
+└─────────────────────────────────────────────────────┘
 ```
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | Next.js 15 (App Router), Tailwind CSS, TypeScript |
+| Frontend | Next.js 15 (App Router), Tailwind CSS, React Query, Zustand |
+| Validation | Zod (shared schemas between frontend and backend) |
 | Auth | Firebase Authentication (Email + Google OAuth) |
-| Backend | Node.js, Express, Prisma ORM |
-| Database | PostgreSQL (Supabase) |
-| AI Engine | Dify (Knowledge Bases + Workflows, structured JSON output) |
-| Automation | n8n (Google Calendar, Slack, email notifications) |
-| Hosting | Vercel (frontend), GCP Cloud Run (API) |
-
-### Service Responsibilities
-
-**Dify — AI Mentor Engine (not chatbot)**
-- Knowledge Bases (RAG): Mentor bios, session notes, progress logs
-- Remembers past sessions and provides context-aware advice
-- All workflows output structured JSON for frontend rendering
-- Workflows: Mentor Matcher, Session Summarizer, Learning Path Generator, AI Mentor Advisor
-
-**n8n — Business Logic & Scheduling (not AI)**
-- Schedule meetings via Google Calendar
-- Slack notifications to mentors
-- Sync session notes and progress to Dify Knowledge Bases
-- Reminders, weekly digests, notifications
+| Backend | Node.js 20, Express, Prisma ORM |
+| Database | PostgreSQL 16 (Supabase) |
+| Caching | Redis (optional, graceful degradation) |
+| AI Engine | Dify Cloud (4 workflow/chat apps, structured JSON output) |
+| API Docs | Swagger/OpenAPI (`/api/docs`) |
+| Error Tracking | Sentry (optional) |
+| Hosting | Vercel (frontend), Render (API) |
+| Build | Turborepo (monorepo orchestration) |
 
 ## Project Structure
 
 ```
 path-connect/
 ├── apps/
-│   ├── web/          # Next.js 15 frontend
-│   └── api/          # Express + Prisma backend
+│   ├── web/              # Next.js 15 frontend
+│   └── api/              # Express + Prisma backend
+│       ├── src/
+│       │   ├── controllers/   # Request handlers
+│       │   ├── services/      # Business logic
+│       │   ├── middleware/    # Auth, validation, error handling
+│       │   ├── lib/           # Redis, Prisma, Firebase, Dify, Sentry
+│       │   ├── routes/        # API routes + OpenAPI annotations
+│       │   └── validators/    # Zod schemas
+│       └── prisma/
+│           ├── schema.prisma  # Data model
+│           └── migrations/    # SQL migrations
 ├── packages/
-│   ├── shared/       # Shared TypeScript types
-│   └── ui/           # Shared React components
-├── dify/             # Dify AI engine setup
-├── n8n-workflows/    # n8n workflow definitions
+│   ├── shared/           # Shared types, enums, Zod validators
+│   └── ui/               # Shared React components
 ├── docs/
-│   └── PLAN.md       # Full implementation plan
-└── docker-compose.yml
+│   ├── PRD.md            # Product requirements
+│   ├── TECHNICAL_DESIGN.md    # Technical design
+│   └── TRADEOFFS_AND_DECISIONS.md  # Architecture decisions
+└── docker-compose.yml    # Local dev (Postgres, Redis, n8n)
 ```
+
+## API
+
+15 REST endpoints across 6 resource domains. Full interactive documentation available at `/api/docs` when the API is running.
+
+| Domain | Endpoints | Description |
+|--------|-----------|-------------|
+| Health | 1 | Service + dependency status |
+| Users | 3 | Profile create/read/update |
+| Mentors | 2 | List and get mentor profiles |
+| Matches | 3 | Create/list/update mentor-mentee matches |
+| Sessions | 4 | Create/list sessions, get details, upsert notes |
+| Goals | 3 | Create/list/update goals |
+| AI | 4 | Mentor matching, chat, learning path, session summary |
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js >= 20
-- Docker Desktop
-- Firebase project (free)
-- Supabase account (free)
+- Docker Desktop (for local Postgres + Redis)
+- Firebase project (free tier)
+- Supabase account (free tier)
+- Dify Cloud account (free tier)
 
 ### Setup
 
@@ -94,24 +118,36 @@ npm install
 
 # Set up environment
 cp .env.example .env
-# Edit .env with your Firebase and Supabase credentials
+# Edit .env with your credentials
 
-# Start all services (PostgreSQL, Redis, n8n)
-docker compose up --build
+# Start infrastructure (PostgreSQL, Redis, n8n)
+docker compose up -d
 
-# Or run the frontend only
-npm run dev --workspace=apps/web
+# Run database migrations
+npm run db:migrate
+
+# Seed test data
+npm run db:seed
+
+# Start development servers (frontend + API)
+npm run dev
 ```
 
 ### Environment Variables
 
-Copy `.env.example` to `.env` and fill in:
+Copy `.env.example` to `.env` and configure:
 
 | Variable | Source |
 |----------|--------|
-| `NEXT_PUBLIC_FIREBASE_*` | Firebase Console → Project Settings |
-| `DATABASE_URL` | Supabase → Settings → Database → Connection string |
-| `DIFY_API_KEY` | Dify Cloud → API Keys |
+| `NEXT_PUBLIC_FIREBASE_*` | Firebase Console -> Project Settings |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | Firebase Console -> Service Accounts |
+| `DATABASE_URL` | Supabase -> Settings -> Database -> Connection string |
+| `DIFY_MENTOR_MATCHER_KEY` | Dify Cloud -> Mentor Matcher app -> API Keys |
+| `DIFY_SESSION_SUMMARIZER_KEY` | Dify Cloud -> Session Summarizer app -> API Keys |
+| `DIFY_LEARNING_PATH_KEY` | Dify Cloud -> Learning Path app -> API Keys |
+| `DIFY_AI_ADVISOR_KEY` | Dify Cloud -> AI Advisor app -> API Keys |
+| `REDIS_URL` | Optional — app works without Redis |
+| `SENTRY_DSN` | Optional — Sentry project DSN |
 
 ## Development
 
@@ -122,24 +158,29 @@ npm run dev --workspace=apps/web
 # Start backend (Express on port 4000)
 npm run dev --workspace=apps/api
 
-# Start all Docker services
-docker compose up --build
+# Run all tests (41 tests)
+npm test
+
+# Build all packages
+npm run build
 
 # Database operations
 npm run db:migrate    # Run Prisma migrations
 npm run db:seed       # Seed database
 npm run db:studio     # Open Prisma Studio
+
+# Docker
+npm run docker:dev    # Start dev environment
+npm run docker:down   # Stop containers
+npm run docker:prod   # Start production build
 ```
 
-## Roadmap
+## Documentation
 
-- [x] **Phase 0** — Project scaffolding, Docker, Next.js migration
-- [ ] **MVP1** — AI mentor matching, session summaries, progress tracking (5 screens)
-- [ ] **MVP2** — 90-day plans, scheduling, sounding board (3 screens)
-- [ ] **MVP3** — Mentorship loop, profiles, notifications (3 screens)
-
-See [docs/PLAN.md](docs/PLAN.md) for the full implementation plan.
+- [Product Requirements (PRD)](docs/PRD.md)
+- [Technical Design](docs/TECHNICAL_DESIGN.md)
+- [Trade-offs and Decisions](docs/TRADEOFFS_AND_DECISIONS.md)
 
 ## License
 
-Private — All rights reserved.
+Copyright (c) 2025 Rani Kandru. All rights reserved. See [LICENSE](LICENSE).

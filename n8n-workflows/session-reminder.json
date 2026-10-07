@@ -1,0 +1,133 @@
+{
+  "name": "Session Reminder (1 hour before)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 15 }]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.API_INTERNAL_URL || 'http://api:4000' }}/api/v1/webhooks/upcoming-sessions?withinMinutes=60",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-webhook-secret",
+              "value": "={{ $env.WEBHOOK_SECRET || 'dev-webhook-secret' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-sessions",
+      "name": "Fetch Upcoming Sessions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "" },
+          "conditions": [
+            {
+              "id": "check-count",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "has-sessions",
+      "name": "Has Sessions?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "split-sessions",
+      "name": "Split Into Sessions",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [910, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM || 'noreply@pathconnect.app' }}",
+        "toEmail": "={{ $json.mentee.email }}",
+        "subject": "=Reminder: Session in {{ Math.round((new Date($json.scheduledAt) - Date.now()) / 60000) }} minutes",
+        "emailType": "text",
+        "message": "=Hi {{ $json.mentee.displayName || 'there' }},\n\nYou have a mentoring session coming up:\n\n- When: {{ new Date($json.scheduledAt).toLocaleString() }}\n- Duration: {{ $json.duration }} minutes\n- Type: {{ $json.type }}\n- With: {{ $json.mentor.displayName || 'your mentor' }}\n{{ $json.meetingLink ? '- Meeting link: ' + $json.meetingLink : '' }}\n\nSee you there!\nPathConnect"
+      },
+      "id": "email-mentee",
+      "name": "Email Mentee",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1130, 100]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM || 'noreply@pathconnect.app' }}",
+        "toEmail": "={{ $json.mentor.email }}",
+        "subject": "=Reminder: Session in {{ Math.round((new Date($json.scheduledAt) - Date.now()) / 60000) }} minutes",
+        "emailType": "text",
+        "message": "=Hi {{ $json.mentor.displayName || 'there' }},\n\nYou have a mentoring session coming up:\n\n- When: {{ new Date($json.scheduledAt).toLocaleString() }}\n- Duration: {{ $json.duration }} minutes\n- Type: {{ $json.type }}\n- With: {{ $json.mentee.displayName || 'your mentee' }}\n{{ $json.meetingLink ? '- Meeting link: ' + $json.meetingLink : '' }}\n\nSee you there!\nPathConnect"
+      },
+      "id": "email-mentor",
+      "name": "Email Mentor",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {},
+      "id": "no-sessions",
+      "name": "No Sessions",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [910, 400]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": {
+      "main": [[{ "node": "Fetch Upcoming Sessions", "type": "main", "index": 0 }]]
+    },
+    "Fetch Upcoming Sessions": {
+      "main": [[{ "node": "Has Sessions?", "type": "main", "index": 0 }]]
+    },
+    "Has Sessions?": {
+      "main": [
+        [{ "node": "Split Into Sessions", "type": "main", "index": 0 }],
+        [{ "node": "No Sessions", "type": "main", "index": 0 }]
+      ]
+    },
+    "Split Into Sessions": {
+      "main": [
+        [
+          { "node": "Email Mentee", "type": "main", "index": 0 },
+          { "node": "Email Mentor", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "pathconnect" }]
+}

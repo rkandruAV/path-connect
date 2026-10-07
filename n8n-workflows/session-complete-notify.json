@@ -1,0 +1,133 @@
+{
+  "name": "Session Complete — Notify & Prompt Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 1 }]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.API_INTERNAL_URL || 'http://api:4000' }}/api/v1/webhooks/completed-sessions?sinceHours=24",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-webhook-secret",
+              "value": "={{ $env.WEBHOOK_SECRET || 'dev-webhook-secret' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-completed",
+      "name": "Fetch Completed Sessions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "" },
+          "conditions": [
+            {
+              "id": "check-count",
+              "leftValue": "={{ $json.count }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "has-sessions",
+      "name": "Has Completed Sessions?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "id": "split-sessions",
+      "name": "Split Into Sessions",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [910, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM || 'noreply@pathconnect.app' }}",
+        "toEmail": "={{ $json.mentee.email }}",
+        "subject": "Your session with {{ $json.mentor.displayName || 'your mentor' }} — add notes & get AI summary",
+        "emailType": "text",
+        "message": "=Hi {{ $json.mentee.displayName || 'there' }},\n\nYour mentoring session has been marked as completed.\n\nTo get the most out of it:\n1. Add your personal notes and reflections\n2. Generate an AI summary with action items\n\nVisit your session: {{ $env.FRONTEND_URL || 'http://localhost:3000' }}/sessions/{{ $json.id }}\n\nBest,\nPathConnect"
+      },
+      "id": "email-mentee",
+      "name": "Email Mentee — Add Notes",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1130, 100]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM || 'noreply@pathconnect.app' }}",
+        "toEmail": "={{ $json.mentor.email }}",
+        "subject": "Session completed with {{ $json.mentee.displayName || 'your mentee' }}",
+        "emailType": "text",
+        "message": "=Hi {{ $json.mentor.displayName || 'there' }},\n\nYour mentoring session has been marked as completed.\n\nYou can add your own notes and reflections here:\n{{ $env.FRONTEND_URL || 'http://localhost:3000' }}/sessions/{{ $json.id }}\n\nThank you for mentoring!\nPathConnect"
+      },
+      "id": "email-mentor",
+      "name": "Email Mentor — Session Done",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {},
+      "id": "no-sessions",
+      "name": "No Completed Sessions",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [910, 400]
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [[{ "node": "Fetch Completed Sessions", "type": "main", "index": 0 }]]
+    },
+    "Fetch Completed Sessions": {
+      "main": [[{ "node": "Has Completed Sessions?", "type": "main", "index": 0 }]]
+    },
+    "Has Completed Sessions?": {
+      "main": [
+        [{ "node": "Split Into Sessions", "type": "main", "index": 0 }],
+        [{ "node": "No Completed Sessions", "type": "main", "index": 0 }]
+      ]
+    },
+    "Split Into Sessions": {
+      "main": [
+        [
+          { "node": "Email Mentee — Add Notes", "type": "main", "index": 0 },
+          { "node": "Email Mentor — Session Done", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [{ "name": "pathconnect" }]
+}

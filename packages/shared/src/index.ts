@@ -9,7 +9,7 @@ export {
   mentorProfileSchema,
   updateUserSchema,
   createGoalSchema,
-} from './validators';
+} from './validators.js';
 
 export type {
   MatchMentorsInput,
@@ -19,7 +19,7 @@ export type {
   MentorProfileInput,
   UpdateUserInput,
   CreateGoalInput,
-} from './validators';
+} from './validators.js';
 
 // ─── Generic Response Types ──────────────────────────────
 

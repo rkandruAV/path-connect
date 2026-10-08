@@ -45,12 +45,23 @@ export function UpcomingSession() {
             <p className="text-sm text-primary-100">{sessionDate} at {sessionTime}</p>
           </div>
         </div>
-        <Link
-          href={`/sessions/${nextSession.id}`}
-          className="px-4 py-2 bg-accent-400 text-primary-900 font-medium rounded-lg text-sm hover:bg-accent-300 transition-colors"
-        >
-          Join
-        </Link>
+        {nextSession.meetingLink ? (
+          <a
+            href={nextSession.meetingLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-accent-400 text-primary-900 font-medium rounded-lg text-sm hover:bg-accent-300 transition-colors"
+          >
+            Join
+          </a>
+        ) : (
+          <Link
+            href={`/sessions/${nextSession.id}`}
+            className="px-4 py-2 bg-accent-400 text-primary-900 font-medium rounded-lg text-sm hover:bg-accent-300 transition-colors"
+          >
+            View
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -17,3 +17,11 @@ export function useMentor(id: string) {
     enabled: !!id,
   });
 }
+
+export function useMentorAvailability(mentorId: string, date: string) {
+  return useQuery({
+    queryKey: ['mentors', mentorId, 'availability', date],
+    queryFn: () => mentorService.getAvailability(mentorId, date).then((r) => r.data),
+    enabled: !!mentorId && !!date,
+  });
+}

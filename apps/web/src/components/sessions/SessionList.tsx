@@ -24,7 +24,15 @@ export function SessionList() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Sessions</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold text-gray-900">Sessions</h1>
+        <Link
+          href="/sessions/new"
+          className="btn-primary text-sm px-4 py-2"
+        >
+          + Schedule Session
+        </Link>
+      </div>
       <p className="text-gray-500 mb-6">Your mentoring sessions</p>
 
       <div className="flex gap-2 mb-6">

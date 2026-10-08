@@ -66,6 +66,8 @@ export interface UserProfile {
   bio?: string;
   weekStreak: number;
   mentorProfile?: MentorProfile;
+  googleCalendarConnected?: boolean;
+  googleCalendarEmail?: string;
 }
 
 export interface MentorProfile {
@@ -105,6 +107,18 @@ export interface Session {
   type: SessionType;
   status: SessionStatus;
   meetingLink?: string;
+  calendarEventId?: string;
+}
+
+export interface AvailabilitySlot {
+  start: string;
+  end: string;
+}
+
+export interface AvailabilityResponse {
+  calendarConnected: boolean;
+  date: string;
+  slots: AvailabilitySlot[];
 }
 
 export interface SessionDetail extends Session {

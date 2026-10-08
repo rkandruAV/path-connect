@@ -8,6 +8,7 @@ import { sessionsRouter } from './sessions.js';
 import { goalsRouter } from './goals.js';
 import { aiRouter } from './ai.js';
 import { webhooksRouter } from './webhooks.js';
+import { calendarRouter } from './calendar.js';
 
 export const apiRouter = Router();
 
@@ -83,3 +84,4 @@ apiRouter.use('/sessions', sessionsRouter);
 apiRouter.use('/goals', goalsRouter);
 apiRouter.use('/ai', aiRouter);
 apiRouter.use('/webhooks', webhooksRouter);
+apiRouter.use('/calendar', calendarRouter);

@@ -77,9 +77,11 @@ model User {
   currentPosition String?  @map("current_position")
   targetRole      String?  @map("target_role")
   bio             String?
-  weekStreak      Int      @default(0) @map("week_streak")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  weekStreak          Int      @default(0) @map("week_streak")
+  googleRefreshToken  String?  @map("google_refresh_token")
+  googleCalendarEmail String?  @map("google_calendar_email")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   mentorProfile    MentorProfile?
   matchesAsMentee  Match[]               @relation("MenteeMatches")
@@ -141,8 +143,9 @@ model Session {
   duration    Int
   type        SessionType   @default(VIDEO)
   status      SessionStatus @default(SCHEDULED)
-  meetingLink String?       @map("meeting_link")
-  createdAt   DateTime      @default(now()) @map("created_at")
+  meetingLink     String?       @map("meeting_link")
+  calendarEventId String?       @map("calendar_event_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
   mentee      User            @relation("MenteeSessions", fields: [menteeId], references: [id], onDelete: Cascade)

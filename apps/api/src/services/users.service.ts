@@ -9,7 +9,13 @@ export async function getUserWithProfile(userId: string) {
     include: { mentorProfile: true },
   });
   if (!user) throw new NotFoundError('User', userId);
-  return user;
+
+  // Never expose refresh token to frontend; provide derived boolean instead
+  const { googleRefreshToken, ...safeUser } = user;
+  return {
+    ...safeUser,
+    googleCalendarConnected: !!googleRefreshToken,
+  };
 }
 
 export async function createOrUpdateUser(userId: string, data: CreateUserInput) {

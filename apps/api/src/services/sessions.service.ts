@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { AppError, NotFoundError, ForbiddenError } from '../utils/errors.js';
 import { getPaginationArgs, toPaginatedResponse } from '../utils/pagination.js';
+import { createEventWithMeet, isGoogleCalendarConfigured } from '../lib/google-calendar.js';
 import type { CreateSessionInput, ListSessionsQuery } from '../validators/sessions.validator.js';
 
 const userSelect = { id: true, displayName: true, photoUrl: true, email: true, role: true };
@@ -16,7 +17,7 @@ export async function createSession(userId: string, data: CreateSessionInput) {
     throw new ForbiddenError('You are not part of this match');
   }
 
-  return prisma.session.create({
+  const session = await prisma.session.create({
     data: {
       menteeId: match.menteeId,
       mentorId: match.mentorId,
@@ -31,6 +32,55 @@ export async function createSession(userId: string, data: CreateSessionInput) {
       mentor: { select: userSelect },
     },
   });
+
+  // Try to create a Google Calendar event with Meet link
+  if (isGoogleCalendarConfigured()) {
+    const mentor = await prisma.user.findUnique({
+      where: { id: match.mentorId },
+      select: { googleRefreshToken: true },
+    });
+
+    if (mentor?.googleRefreshToken) {
+      try {
+        const scheduledAt = new Date(data.scheduledAt);
+        const endTime = new Date(scheduledAt.getTime() + data.duration * 60000);
+
+        const calendarEvent = await createEventWithMeet(mentor.googleRefreshToken, {
+          summary: `PathConnect: Session with ${session.mentee.displayName || session.mentee.email}`,
+          startTime: scheduledAt.toISOString(),
+          endTime: endTime.toISOString(),
+          attendeeEmail: session.mentee.email,
+          description: `PathConnect mentoring session (${data.duration} min, ${data.type || 'VIDEO'})`,
+        });
+
+        // Update session with calendar event ID and Meet link
+        const updated = await prisma.session.update({
+          where: { id: session.id },
+          data: {
+            calendarEventId: calendarEvent.eventId,
+            meetingLink: calendarEvent.meetLink || session.meetingLink,
+          },
+          include: {
+            mentee: { select: userSelect },
+            mentor: { select: userSelect },
+          },
+        });
+
+        return updated;
+      } catch (err) {
+        // Graceful degradation — session is created even if calendar fails
+        console.error(JSON.stringify({
+          level: 'error',
+          service: 'google-calendar',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          sessionId: session.id,
+          timestamp: new Date().toISOString(),
+        }));
+      }
+    }
+  }
+
+  return session;
 }
 
 export async function listSessions(userId: string, filters: ListSessionsQuery) {

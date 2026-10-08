@@ -17,7 +17,7 @@ export function QuickActions() {
           View 90-Day Plan
         </Link>
         <Link
-          href="/sessions"
+          href="/sessions/new"
           className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
           <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">

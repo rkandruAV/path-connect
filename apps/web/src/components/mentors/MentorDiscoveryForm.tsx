@@ -15,6 +15,7 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
   const [currentPosition, setCurrentPosition] = useState('');
   const [goals, setGoals] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState('');
   const updateProfile = useUpdateProfile();
   const matchMentors = useMatchMentors();
 
@@ -36,13 +37,19 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
       return;
     }
     setFieldErrors({});
-    await updateProfile.mutateAsync({
-      targetRole: data.targetRole,
-      currentPosition: data.currentPosition,
-      bio: data.goals,
-    });
-    await matchMentors.mutateAsync(data);
-    onComplete();
+    setSubmitError('');
+    try {
+      await updateProfile.mutateAsync({
+        targetRole: data.targetRole,
+        currentPosition: data.currentPosition,
+        bio: data.goals,
+      });
+      await matchMentors.mutateAsync(data);
+      onComplete();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      setSubmitError(message);
+    }
   };
 
   return (
@@ -151,6 +158,9 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
       >
         {isPending ? (matchMentors.isPending ? 'Finding your matches...' : 'Saving...') : 'Next →'}
       </button>
+      {submitError && (
+        <p className="text-center text-sm text-red-600 mt-2">{submitError}</p>
+      )}
       {!isValid && (
         <p className="text-center text-xs text-gray-400 mt-2">Please fill in all fields to continue</p>
       )}

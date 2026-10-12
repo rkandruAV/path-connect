@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMatches } from '@/hooks/useMatches';
 import { matchService } from '@/services/matchService';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,13 +13,26 @@ interface MentorListProps {
 export function MentorList({ onBack }: MentorListProps) {
   const { data, isLoading } = useMatches({ status: 'PENDING' });
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());
 
   const acceptMatch = useMutation({
     mutationFn: (matchId: string) => matchService.updateStatus(matchId, 'ACTIVE'),
-    onSuccess: () => {
+    onSuccess: (_data, matchId) => {
+      setConnectedIds((prev) => new Set(prev).add(matchId));
+      setConnectingId(null);
       queryClient.invalidateQueries({ queryKey: ['matches'] });
     },
+    onError: () => {
+      setConnectingId(null);
+    },
   });
+
+  const handleConnect = (matchId: string) => {
+    setConnectingId(matchId);
+    acceptMatch.mutate(matchId);
+  };
 
   return (
     <div>
@@ -62,6 +77,8 @@ export function MentorList({ onBack }: MentorListProps) {
               .map((n: string) => n[0])
               .join('')
               .toUpperCase() || '?';
+            const isConnected = connectedIds.has(match.id);
+            const isConnecting = connectingId === match.id;
 
             return (
               <div key={match.id} className="card">
@@ -81,13 +98,22 @@ export function MentorList({ onBack }: MentorListProps) {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => acceptMatch.mutate(match.id)}
-                  disabled={acceptMatch.isPending}
-                  className="btn-primary w-full mt-4 text-sm"
-                >
-                  {acceptMatch.isPending ? 'Connecting...' : 'Connect'}
-                </button>
+                {isConnected ? (
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="w-full mt-4 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
+                  >
+                    Connected — Go to Dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleConnect(match.id)}
+                    disabled={isConnecting}
+                    className="btn-primary w-full mt-4 text-sm"
+                  >
+                    {isConnecting ? 'Connecting...' : 'Connect'}
+                  </button>
+                )}
               </div>
             );
           })}
@@ -95,12 +121,6 @@ export function MentorList({ onBack }: MentorListProps) {
       ) : (
         <div className="card text-center py-8">
           <p className="text-gray-500">No mentor matches found. Try adjusting your goals!</p>
-        </div>
-      )}
-
-      {acceptMatch.isSuccess && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg shadow-lg">
-          Connection request sent!
         </div>
       )}
     </div>

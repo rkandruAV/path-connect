@@ -92,7 +92,7 @@ export async function matchMentors(userId: string, criteria: MatchMentorsInput) 
   const ranked = (parsed.mentors as Array<{ id: string; score: number; reason: string; name?: string }>) || [];
 
   // Build lookup maps: the LLM may return exact DB IDs or hallucinated ones.
-  // Fall back to name-based matching when the returned ID isn't in the database.
+  // Fall back to positional (mentor_N) or name-based matching.
   const validMentorIds = new Set(mentors.map((m) => m.userId));
   const mentorByName = new Map(
     mentors.map((m) => [(m.user.displayName || m.user.email).toLowerCase(), m.userId])
@@ -100,6 +100,12 @@ export async function matchMentors(userId: string, criteria: MatchMentorsInput) 
 
   function resolveMentorId(r: { id: string; reason: string; name?: string }): string | null {
     if (validMentorIds.has(r.id)) return r.id;
+    // Try positional pattern: "mentor_1" → index 0, "mentor_2" → index 1, etc.
+    const positionalMatch = r.id.match(/^mentor[_\-\s]?(\d+)$/i);
+    if (positionalMatch) {
+      const index = parseInt(positionalMatch[1], 10) - 1; // 1-based → 0-based
+      if (index >= 0 && index < mentorList.length) return mentorList[index].id;
+    }
     // Try matching by name field if the LLM included one
     if (r.name) {
       const byName = mentorByName.get(r.name.toLowerCase());

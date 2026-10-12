@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { matchMentorsSchema } from '@path-connect/shared';
-import { useUpdateProfile } from '@/hooks/useUser';
+import { useCurrentUser, useUpdateProfile } from '@/hooks/useUser';
 import { useMatchMentors } from '@/hooks/useDify';
 
 interface MentorDiscoveryFormProps {
@@ -11,6 +11,7 @@ interface MentorDiscoveryFormProps {
 }
 
 export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
+  const { data: currentUser } = useCurrentUser();
   const [targetRole, setTargetRole] = useState('');
   const [currentPosition, setCurrentPosition] = useState('');
   const [goals, setGoals] = useState('');
@@ -18,6 +19,15 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
   const [submitError, setSubmitError] = useState('');
   const updateProfile = useUpdateProfile();
   const matchMentors = useMatchMentors();
+
+  // Pre-populate from saved profile data
+  useEffect(() => {
+    if (currentUser) {
+      setTargetRole((prev) => prev || currentUser.targetRole || '');
+      setCurrentPosition((prev) => prev || currentUser.currentPosition || '');
+      setGoals((prev) => prev || currentUser.bio || '');
+    }
+  }, [currentUser]);
 
   const isPending = updateProfile.isPending || matchMentors.isPending;
   const isValid = targetRole.trim() && currentPosition.trim() && goals.trim();

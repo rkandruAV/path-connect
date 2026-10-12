@@ -15,14 +15,12 @@ export function MentorList({ onBack }: MentorListProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [connectingId, setConnectingId] = useState<string | null>(null);
-  const [connectedIds, setConnectedIds] = useState<Set<string>>(new Set());
 
   const acceptMatch = useMutation({
     mutationFn: (matchId: string) => matchService.updateStatus(matchId, 'ACTIVE'),
-    onSuccess: (_data, matchId) => {
-      setConnectedIds((prev) => new Set(prev).add(matchId));
-      setConnectingId(null);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
+      router.push('/dashboard');
     },
     onError: () => {
       setConnectingId(null);
@@ -77,7 +75,6 @@ export function MentorList({ onBack }: MentorListProps) {
               .map((n: string) => n[0])
               .join('')
               .toUpperCase() || '?';
-            const isConnected = connectedIds.has(match.id);
             const isConnecting = connectingId === match.id;
 
             return (
@@ -98,22 +95,13 @@ export function MentorList({ onBack }: MentorListProps) {
                     )}
                   </div>
                 </div>
-                {isConnected ? (
-                  <button
-                    onClick={() => router.push('/dashboard')}
-                    className="w-full mt-4 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
-                  >
-                    Connected — Go to Dashboard
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleConnect(match.id)}
-                    disabled={isConnecting}
-                    className="btn-primary w-full mt-4 text-sm"
-                  >
-                    {isConnecting ? 'Connecting...' : 'Connect'}
-                  </button>
-                )}
+                <button
+                  onClick={() => handleConnect(match.id)}
+                  disabled={isConnecting || connectingId !== null}
+                  className="btn-primary w-full mt-4 text-sm"
+                >
+                  {isConnecting ? 'Connecting...' : 'Connect'}
+                </button>
               </div>
             );
           })}

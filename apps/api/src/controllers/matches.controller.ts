@@ -19,6 +19,15 @@ export async function listMatches(req: Request, res: Response, next: NextFunctio
   }
 }
 
+export async function requestConnection(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await matchesService.requestConnection(req.params.id, req.user.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function updateMatch(req: Request, res: Response, next: NextFunction) {
   try {
     const match = await matchesService.updateMatchStatus(req.params.id, req.user.id, req.body);

@@ -130,4 +130,6 @@ matchesRouter.get('/', validate({ query: listMatchesQuerySchema }), matchesContr
  *       404:
  *         description: Match not found
  */
+matchesRouter.post('/:id/request', validate({ params: matchIdParamsSchema }), matchesController.requestConnection);
+
 matchesRouter.patch('/:id', validate({ params: matchIdParamsSchema, body: updateMatchSchema }), matchesController.updateMatch);

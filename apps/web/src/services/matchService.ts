@@ -10,4 +10,7 @@ export const matchService = {
 
   updateStatus: (id: string, status: MatchStatus) =>
     api.patch<ApiResponse<Match>>(`/matches/${id}`, { status }).then((r) => r.data),
+
+  requestConnection: (id: string) =>
+    api.post<{ message: string }>(`/matches/${id}/request`).then((r) => r.data),
 };

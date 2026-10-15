@@ -15,12 +15,14 @@ export function MentorList({ onBack }: MentorListProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set());
 
-  const acceptMatch = useMutation({
-    mutationFn: (matchId: string) => matchService.updateStatus(matchId, 'ACTIVE'),
-    onSuccess: () => {
+  const sendRequest = useMutation({
+    mutationFn: (matchId: string) => matchService.requestConnection(matchId),
+    onSuccess: (_data, matchId) => {
+      setSentIds((prev) => new Set(prev).add(matchId));
+      setConnectingId(null);
       queryClient.invalidateQueries({ queryKey: ['matches'] });
-      router.push('/dashboard');
     },
     onError: () => {
       setConnectingId(null);
@@ -29,7 +31,7 @@ export function MentorList({ onBack }: MentorListProps) {
 
   const handleConnect = (matchId: string) => {
     setConnectingId(matchId);
-    acceptMatch.mutate(matchId);
+    sendRequest.mutate(matchId);
   };
 
   return (
@@ -76,6 +78,7 @@ export function MentorList({ onBack }: MentorListProps) {
               .join('')
               .toUpperCase() || '?';
             const isConnecting = connectingId === match.id;
+            const isSent = sentIds.has(match.id);
 
             return (
               <div key={match.id} className="card">
@@ -95,13 +98,30 @@ export function MentorList({ onBack }: MentorListProps) {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleConnect(match.id)}
-                  disabled={isConnecting || connectingId !== null}
-                  className="btn-primary w-full mt-4 text-sm"
-                >
-                  {isConnecting ? 'Connecting...' : 'Connect'}
-                </button>
+                {isSent ? (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-center gap-2 py-2 text-sm text-primary-700 bg-primary-50 rounded-xl">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Request sent — waiting for {mentor.displayName} to accept
+                    </div>
+                    <button
+                      onClick={() => router.push('/dashboard')}
+                      className="btn-secondary w-full text-sm"
+                    >
+                      Go to Dashboard
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleConnect(match.id)}
+                    disabled={isConnecting || connectingId !== null}
+                    className="btn-primary w-full mt-4 text-sm"
+                  >
+                    {isConnecting ? 'Sending request...' : 'Connect'}
+                  </button>
+                )}
               </div>
             );
           })}

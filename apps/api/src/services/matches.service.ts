@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { AppError, NotFoundError, ForbiddenError } from '../utils/errors.js';
 import { getPaginationArgs, toPaginatedResponse } from '../utils/pagination.js';
+import { sendConnectionRequestEmail, sendConnectionAcceptedEmail } from '../lib/email.js';
 import type { CreateMatchInput, UpdateMatchInput, ListMatchesQuery } from '../validators/matches.validator.js';
 
 export async function createMatch(menteeId: string, data: CreateMatchInput) {
@@ -35,6 +36,35 @@ export async function createMatch(menteeId: string, data: CreateMatchInput) {
   });
 }
 
+export async function requestConnection(matchId: string, userId: string) {
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    include: {
+      mentee: { select: { id: true, displayName: true, email: true } },
+      mentor: { select: { id: true, displayName: true, email: true } },
+    },
+  });
+  if (!match) throw new NotFoundError('Match', matchId);
+  if (match.menteeId !== userId) {
+    throw new ForbiddenError('Only the mentee can request this connection');
+  }
+  if (match.status !== 'PENDING') {
+    throw new AppError('This connection is no longer pending', 400);
+  }
+
+  // Send notification to mentor
+  if (match.mentor?.email) {
+    await sendConnectionRequestEmail({
+      to: match.mentor.email,
+      menteeName: match.mentee?.displayName || match.mentee?.email || 'A mentee',
+      mentorName: match.mentor.displayName || undefined,
+      reason: match.reason || undefined,
+    });
+  }
+
+  return { message: 'Connection request sent to mentor' };
+}
+
 export async function listMatches(userId: string, filters: ListMatchesQuery) {
   const { skip, take, page, limit } = getPaginationArgs(filters);
 
@@ -66,8 +96,8 @@ export async function updateMatchStatus(matchId: string, userId: string, data: U
 
   // Validate permissions and state transitions
   if (data.status === 'ACTIVE' || data.status === 'DECLINED') {
-    if (match.mentorId !== userId && match.menteeId !== userId) {
-      throw new ForbiddenError('Only participants can accept or decline a match');
+    if (match.mentorId !== userId) {
+      throw new ForbiddenError('Only the mentor can accept or decline a connection request');
     }
     if (match.status !== 'PENDING') {
       throw new AppError('Can only accept/decline a pending match', 400);
@@ -83,7 +113,7 @@ export async function updateMatchStatus(matchId: string, userId: string, data: U
     }
   }
 
-  return prisma.match.update({
+  const updated = await prisma.match.update({
     where: { id: matchId },
     data: { status: data.status },
     include: {
@@ -91,4 +121,15 @@ export async function updateMatchStatus(matchId: string, userId: string, data: U
       mentor: { select: { id: true, displayName: true, photoUrl: true, email: true, role: true } },
     },
   });
+
+  // Notify mentee when mentor accepts (non-blocking)
+  if (data.status === 'ACTIVE' && updated.mentee?.email) {
+    sendConnectionAcceptedEmail({
+      to: updated.mentee.email,
+      menteeName: updated.mentee.displayName || 'there',
+      mentorName: updated.mentor?.displayName || 'Your mentor',
+    }).catch((err) => console.error('[email] Failed to send acceptance email:', err));
+  }
+
+  return updated;
 }

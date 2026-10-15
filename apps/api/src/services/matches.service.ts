@@ -66,8 +66,8 @@ export async function updateMatchStatus(matchId: string, userId: string, data: U
 
   // Validate permissions and state transitions
   if (data.status === 'ACTIVE' || data.status === 'DECLINED') {
-    if (match.mentorId !== userId) {
-      throw new ForbiddenError('Only the mentor can accept or decline a match');
+    if (match.mentorId !== userId && match.menteeId !== userId) {
+      throw new ForbiddenError('Only participants can accept or decline a match');
     }
     if (match.status !== 'PENDING') {
       throw new AppError('Can only accept/decline a pending match', 400);

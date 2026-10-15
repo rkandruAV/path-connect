@@ -5,6 +5,7 @@ import { StatsRow } from '@/components/dashboard/StatsRow';
 import { UpcomingSession } from '@/components/dashboard/UpcomingSession';
 import { FeatureCard } from '@/components/dashboard/FeatureCard';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { MyMentor } from '@/components/dashboard/MyMentor';
 import { useGoals } from '@/hooks/useGoals';
 import { useSessions } from '@/hooks/useSessions';
 import { useCurrentUser } from '@/hooks/useUser';
@@ -23,6 +24,7 @@ export default function DashboardPage() {
     <div>
       <DashboardHeader />
       <StatsRow />
+      {!isMentor && <MyMentor />}
       <UpcomingSession />
 
       <div className="space-y-4 mb-6">

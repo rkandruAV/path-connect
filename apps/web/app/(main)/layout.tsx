@@ -9,6 +9,7 @@ import { useCurrentUser } from '@/hooks/useUser';
 const menteeNavItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/mentors', label: 'Find Mentor', icon: '🔍' },
+  { path: '/invite', label: 'Invite Mentor', icon: '✉️' },
   { path: '/sessions', label: 'Sessions', icon: '📅' },
   { path: '/learning-path', label: 'Learning Path', icon: '📚' },
   { path: '/chat', label: 'AI Advisor', icon: '💬' },

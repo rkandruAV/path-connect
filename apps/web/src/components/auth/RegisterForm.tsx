@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { invitationService, type InvitationDetails } from '@/services/invitationService';
 
 type Role = 'MENTEE' | 'MENTOR';
 
 export function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get('invite');
   const { register, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +19,31 @@ export function RegisterForm() {
   const [role, setRole] = useState<Role>('MENTEE');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [invite, setInvite] = useState<InvitationDetails | null>(null);
+  const [inviteError, setInviteError] = useState('');
+
+  // Fetch invitation details if token is present
+  useEffect(() => {
+    if (!inviteToken) return;
+    invitationService.getByToken(inviteToken)
+      .then((res) => {
+        setInvite(res.data);
+        setRole(res.data.inviteeRole as Role);
+        if (res.data.inviteeEmail) setEmail(res.data.inviteeEmail);
+      })
+      .catch(() => {
+        setInviteError('This invitation is invalid or has expired.');
+      });
+  }, [inviteToken]);
+
+  const acceptInviteAfterRegister = async () => {
+    if (!inviteToken) return;
+    try {
+      await invitationService.accept(inviteToken);
+    } catch {
+      // Non-blocking — don't prevent registration
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +61,7 @@ export function RegisterForm() {
     setLoading(true);
     try {
       await register(email, password, role.toLowerCase() as 'mentor' | 'mentee');
+      await acceptInviteAfterRegister();
       router.push('/dashboard');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create account';
@@ -47,6 +76,7 @@ export function RegisterForm() {
     setLoading(true);
     try {
       await loginWithGoogle();
+      await acceptInviteAfterRegister();
       router.push('/dashboard');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sign in with Google';
@@ -60,6 +90,21 @@ export function RegisterForm() {
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Create an account</h2>
       <p className="text-gray-600 mb-6">Start your mentorship journey today</p>
+
+      {invite && (
+        <div className="mb-4 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+          <p className="text-sm text-primary-800">
+            <strong>{invite.inviter.displayName || invite.inviter.email}</strong> invited you
+            to join as a <strong>mentor</strong> on PathConnect!
+          </p>
+        </div>
+      )}
+
+      {inviteError && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+          {inviteError}
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
@@ -118,23 +163,23 @@ export function RegisterForm() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setRole('MENTEE')}
+              onClick={() => !invite && setRole('MENTEE')}
               className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
                 role === 'MENTEE'
                   ? 'border-accent-500 bg-accent-50 text-accent-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
-              }`}
+              } ${invite ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Find a Mentor
             </button>
             <button
               type="button"
-              onClick={() => setRole('MENTOR')}
+              onClick={() => !invite && setRole('MENTOR')}
               className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
                 role === 'MENTOR'
                   ? 'border-accent-500 bg-accent-50 text-accent-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
-              }`}
+              } ${invite ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               Be a Mentor
             </button>

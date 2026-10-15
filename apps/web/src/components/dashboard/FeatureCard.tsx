@@ -15,7 +15,7 @@ interface FeatureCardProps {
 
 export function FeatureCard({ href, icon, iconBgColor, title, subtitle, badge, children, comingSoon }: FeatureCardProps) {
   const content = (
-    <div className="card hover:shadow-md transition-shadow cursor-pointer relative">
+    <div className="card cursor-pointer relative">
       {comingSoon && (
         <span className="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-500 rounded-full">
           Coming Soon

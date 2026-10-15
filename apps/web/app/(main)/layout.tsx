@@ -55,10 +55,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-primary-600">PathConnect</h1>
-          <p className="text-xs text-gray-500 mt-1">AI-Powered Mentorship</p>
+      <aside className="w-64 bg-white border-r border-gray-100 flex flex-col">
+        <div className="p-6 border-b border-gray-100">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">PathConnect</h1>
+          <p className="text-xs text-gray-400 mt-1">AI-Powered Mentorship</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">

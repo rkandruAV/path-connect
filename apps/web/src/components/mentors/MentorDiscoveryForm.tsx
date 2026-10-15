@@ -81,7 +81,7 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
       </div>
 
       <div className="space-y-6">
-        <div className="bg-primary-50 rounded-xl p-5">
+        <div className="bg-primary-50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
               <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
@@ -106,7 +106,7 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
           <p className="text-xs text-gray-400 mt-1 text-right">{targetRole.length}/200</p>
         </div>
 
-        <div className="bg-primary-50 rounded-xl p-5">
+        <div className="bg-primary-50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
               <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
@@ -132,7 +132,7 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
           <p className="text-xs text-gray-400 mt-1 text-right">{currentPosition.length}/200</p>
         </div>
 
-        <div className="bg-primary-50 rounded-xl p-5">
+        <div className="bg-primary-50 rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
               <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
@@ -160,7 +160,7 @@ export function MentorDiscoveryForm({ onComplete }: MentorDiscoveryFormProps) {
       <button
         onClick={handleSubmit}
         disabled={!isValid || isPending}
-        className={`w-full mt-6 py-3 rounded-lg font-medium transition-colors ${
+        className={`w-full mt-6 py-3 rounded-xl font-medium transition-colors ${
           isValid
             ? 'btn-primary'
             : 'bg-gray-200 text-gray-400 cursor-not-allowed'

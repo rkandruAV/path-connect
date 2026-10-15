@@ -166,7 +166,7 @@ export function RegisterForm() {
               onClick={() => !invite && setRole('MENTEE')}
               className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
                 role === 'MENTEE'
-                  ? 'border-accent-500 bg-accent-50 text-accent-700'
+                  ? 'border-primary-300 bg-primary-50 text-primary-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
               } ${invite ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
@@ -177,7 +177,7 @@ export function RegisterForm() {
               onClick={() => !invite && setRole('MENTOR')}
               className={`p-3 rounded-lg border-2 text-sm font-medium transition-colors ${
                 role === 'MENTOR'
-                  ? 'border-accent-500 bg-accent-50 text-accent-700'
+                  ? 'border-primary-300 bg-primary-50 text-primary-700'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
               } ${invite ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
@@ -228,7 +228,7 @@ export function RegisterForm() {
 
       <p className="mt-6 text-center text-sm text-gray-600">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-accent-600 hover:text-accent-500">
+        <Link href="/login" className="font-medium text-primary-600 hover:text-primary-500">
           Sign in
         </Link>
       </p>

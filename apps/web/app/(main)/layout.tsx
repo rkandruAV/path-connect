@@ -55,9 +55,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-100 flex flex-col">
-        <div className="p-6 border-b border-gray-100">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">PathConnect</h1>
+      <aside className="w-64 bg-white border-r border-gray-100/60 flex flex-col">
+        <div className="p-6 border-b border-gray-100/60">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-accent-500 bg-clip-text text-transparent">PathConnect</h1>
           <p className="text-xs text-gray-400 mt-1">AI-Powered Mentorship</p>
         </div>
 
@@ -78,7 +78,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-100/60">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-sm font-medium text-primary-700">
               {user?.email?.[0]?.toUpperCase() || 'U'}

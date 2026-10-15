@@ -86,7 +86,7 @@ export function MentorList({ onBack }: MentorListProps) {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900">{mentor.displayName}</h3>
                     {match.score && (
-                      <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium bg-green-50 text-green-700 rounded-full">
+                      <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium bg-primary-50 text-primary-700 rounded-full">
                         {match.score}% match
                       </span>
                     )}

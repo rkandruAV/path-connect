@@ -31,22 +31,22 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen flex">
       {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 text-white flex-col justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-400 text-white flex-col justify-center p-12">
         <h1 className="text-4xl font-bold mb-4">PathConnect</h1>
-        <p className="text-xl text-primary-200 mb-8">
+        <p className="text-xl text-primary-100 mb-8">
           AI-powered mentorship that connects you with the perfect guide for your journey.
         </p>
-        <ul className="space-y-4 text-primary-200">
+        <ul className="space-y-4 text-primary-100">
           <li className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center text-xs text-white">✓</span>
+            <span className="w-6 h-6 rounded-full bg-accent-400 flex items-center justify-center text-xs text-white">✓</span>
             AI-matched mentors based on your goals
           </li>
           <li className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center text-xs text-white">✓</span>
+            <span className="w-6 h-6 rounded-full bg-accent-400 flex items-center justify-center text-xs text-white">✓</span>
             Automated session summaries & action items
           </li>
           <li className="flex items-center gap-3">
-            <span className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center text-xs text-white">✓</span>
+            <span className="w-6 h-6 rounded-full bg-accent-400 flex items-center justify-center text-xs text-white">✓</span>
             Personalized learning paths
           </li>
         </ul>

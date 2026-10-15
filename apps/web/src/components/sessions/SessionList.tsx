@@ -13,8 +13,8 @@ const tabs: { label: string; value: SessionStatus | undefined }[] = [
 ];
 
 const statusStyles: Record<string, string> = {
-  SCHEDULED: 'bg-blue-50 text-blue-600',
-  COMPLETED: 'bg-green-50 text-green-600',
+  SCHEDULED: 'bg-accent-50 text-accent-600',
+  COMPLETED: 'bg-primary-50 text-primary-600',
   CANCELLED: 'bg-gray-100 text-gray-500',
 };
 
@@ -42,7 +42,7 @@ export function SessionList() {
             onClick={() => setStatusFilter(tab.value)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               statusFilter === tab.value
-                ? 'bg-primary-600 text-white'
+                ? 'bg-primary-500 text-white'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >

@@ -45,7 +45,7 @@ export function AvailabilityPicker({ mentorId, onSlotSelect, selectedSlot }: Ava
             onClick={() => setSelectedDate(opt.value)}
             className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
               selectedDate === opt.value
-                ? 'bg-primary-600 text-white'
+                ? 'bg-primary-500 text-white'
                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -83,7 +83,7 @@ export function AvailabilityPicker({ mentorId, onSlotSelect, selectedSlot }: Ava
                     onClick={() => onSlotSelect({ scheduledAt: slot.start, duration: Math.min(duration, 60) })}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors text-center ${
                       selectedSlot === slot.start
-                        ? 'bg-primary-600 text-white'
+                        ? 'bg-primary-500 text-white'
                         : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
                     }`}
                   >

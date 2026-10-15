@@ -58,7 +58,7 @@ export function OverviewTab() {
               <circle cx="18" cy="18" r="15" fill="none" stroke="#f3f4f6" strokeWidth="3" />
               <circle
                 cx="18" cy="18" r="15" fill="none"
-                stroke="#8b5cf6" strokeWidth="3"
+                stroke="#62ad8c" strokeWidth="3"
                 strokeDasharray={`${progressPercent * 0.942} 100`}
                 strokeLinecap="round"
               />

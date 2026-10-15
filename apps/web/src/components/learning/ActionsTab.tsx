@@ -12,8 +12,8 @@ const periodLabels: Record<GoalPeriod, string> = {
 const periodOrder: GoalPeriod[] = ['THIRTY_DAY', 'SIXTY_DAY', 'NINETY_DAY'];
 
 const statusColors: Record<string, string> = {
-  ACHIEVED: 'text-green-600 bg-green-50',
-  ON_TRACK: 'text-blue-600 bg-blue-50',
+  ACHIEVED: 'text-primary-600 bg-primary-50',
+  ON_TRACK: 'text-accent-600 bg-accent-50',
   NEEDS_UPDATE: 'text-orange-600 bg-orange-50',
   PENDING: 'text-gray-500 bg-gray-100',
 };
@@ -36,7 +36,7 @@ export function ActionsTab() {
                 <div key={goal.id} className="card py-3 px-4">
                   <div className="flex items-start gap-3">
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                      goal.status === 'ACHIEVED' ? 'border-green-400 bg-green-400' : 'border-gray-300 bg-white'
+                      goal.status === 'ACHIEVED' ? 'border-primary-400 bg-primary-400' : 'border-gray-300 bg-white'
                     }`}>
                       {goal.status === 'ACHIEVED' && (
                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">

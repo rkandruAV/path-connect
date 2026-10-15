@@ -109,8 +109,8 @@ export function MentorOnboardingForm() {
               onClick={() => toggleExpertise(item)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 expertise.includes(item)
-                  ? 'bg-primary-800 text-white border-primary-800'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-primary-400'
+                  ? 'bg-primary-500 text-white border-primary-500'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'
               }`}
             >
               {item}
@@ -170,8 +170,8 @@ export function MentorOnboardingForm() {
               onClick={() => toggleAvailability(item)}
               className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 availability.includes(item)
-                  ? 'bg-accent-400 text-primary-900 border-accent-400'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent-400'
+                  ? 'bg-accent-300 text-accent-900 border-accent-300'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300'
               }`}
             >
               {item}
